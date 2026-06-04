@@ -254,16 +254,29 @@ function getStatus(devId){
 function setSyncDot(s){const el=document.getElementById('syncDot');if(el)el.className='sync-dot '+s;}
 async function loadAll(){
   try{
-    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),3000);
+    const ctrl=new AbortController();
+    setTimeout(()=>ctrl.abort(),5000);
     const r=await fetch('/api/data',{signal:ctrl.signal});
-    if(r.ok){const d=await r.json();if(d.rooms&&Object.keys(d.rooms).length){
-        rooms=d.rooms;groups=d.groups||{};checkData=d.checkData||{};
-        if(d.roomOrder&&Array.isArray(d.roomOrder))localStorage.setItem('rc_room_order',JSON.stringify(d.roomOrder));
-        setSyncDot('ok');return;}}
-  }catch(e){}
+    if(r.ok){
+      const d=await r.json();
+      // Always trust server - it is the source of truth
+      rooms=d.rooms||{};
+      groups=d.groups||{};
+      checkData=d.checkData||{};
+      if(d.roomOrder&&Array.isArray(d.roomOrder)){
+        localStorage.setItem('rc_room_order',JSON.stringify(d.roomOrder));
+      }
+      setSyncDot('ok');
+      return;
+    }
+  }catch(e){
+    console.warn('Server fetch failed, using localStorage fallback',e);
+  }
+  // Only fall back to localStorage if server is unreachable
   try{const r=localStorage.getItem('rc_rooms');if(r)rooms=JSON.parse(r);}catch(e){}
   try{const g=localStorage.getItem('rc_groups');if(g)groups=JSON.parse(g);}catch(e){}
-  try{const c=localStorage.getItem('rc_checks');if(c)checkData=JSON.parse(c);}catch(e){}
+  try{const cc=localStorage.getItem('rc_checks');if(cc)checkData=JSON.parse(cc);}catch(e){}
+  setSyncDot('err');
 }
 async function saveChecks(){
   localStorage.setItem('rc_checks',JSON.stringify(checkData));
