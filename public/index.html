@@ -319,6 +319,21 @@ select.finp{cursor:pointer}
 .btab.on::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--acc);border-radius:0 0 2px 2px}
 .btab-icon{font-size:20px;line-height:1}
 .btab-divider{width:1px;height:28px;background:var(--b1);margin:auto 0}
+
+/* ── COLLAPSIBLE SIDEBAR ── */
+.sidebar-toggle{display:none;position:absolute;top:50%;left:0;transform:translateY(-50%);z-index:50;
+  width:18px;height:48px;background:var(--surf);border:1px solid var(--b2);border-left:none;
+  border-radius:0 6px 6px 0;cursor:pointer;align-items:center;justify-content:center;
+  font-size:10px;color:var(--t2);transition:.15s;flex-direction:column;gap:1px}
+.sidebar-toggle:hover{color:var(--t1);background:var(--surf2)}
+.sidebar.collapsed{width:0!important;overflow:hidden;border-right:none}
+.sidebar-wrap{position:relative;display:flex;flex-shrink:0}
+.sidebar-wrap .sidebar-toggle{display:flex}
+
+@media(max-width:900px){
+  .sidebar-wrap .sidebar-toggle{display:flex}
+  .sidebar{transition:width .22s}
+}
 </style>
 </head>
 <body>
@@ -357,7 +372,7 @@ select.finp{cursor:pointer}
 </div>
 
 <div class="main">
-  <div class="sidebar" id="sidebar"></div>
+  <div class="sidebar-wrap"><div class="sidebar" id="sidebar"></div><button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉"><span id="toggleArrow">◀</span></button></div>
   <div class="canvas-wrap" id="cWrap"
     ondragover="cvDragOver(event)" ondrop="cvDrop(event)" ondragleave="cvDragLeave()">
     <div id="canvas" onclick="cvClick(event)"></div>
@@ -2218,6 +2233,22 @@ function initBoxSelect(){
       startBoxSelect(e);
     }
   });
+}
+
+
+// ── SIDEBAR TOGGLE ──────────────────────
+let sidebarOpen = true;
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const arrow = document.getElementById('toggleArrow');
+  sidebarOpen = !sidebarOpen;
+  if(sidebarOpen){
+    sb.classList.remove('collapsed');
+    arrow.textContent = '◀';
+  } else {
+    sb.classList.add('collapsed');
+    arrow.textContent = '▶';
+  }
 }
 
 // startup
