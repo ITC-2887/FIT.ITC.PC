@@ -256,7 +256,10 @@ async function loadAll(){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),3000);
     const r=await fetch('/api/data',{signal:ctrl.signal});
-    if(r.ok){const d=await r.json();if(d.rooms&&Object.keys(d.rooms).length){rooms=d.rooms;groups=d.groups||{};checkData=d.checkData||{};setSyncDot('ok');return;}}
+    if(r.ok){const d=await r.json();if(d.rooms&&Object.keys(d.rooms).length){
+        rooms=d.rooms;groups=d.groups||{};checkData=d.checkData||{};
+        if(d.roomOrder&&Array.isArray(d.roomOrder))localStorage.setItem('rc_room_order',JSON.stringify(d.roomOrder));
+        setSyncDot('ok');return;}}
   }catch(e){}
   try{const r=localStorage.getItem('rc_rooms');if(r)rooms=JSON.parse(r);}catch(e){}
   try{const g=localStorage.getItem('rc_groups');if(g)groups=JSON.parse(g);}catch(e){}
@@ -291,6 +294,20 @@ function doLogin(){
 }
 
 // ── ROOM BAR ──
+function getRoomOrder(){
+  try{
+    const saved=localStorage.getItem('rc_room_order');
+    if(saved){
+      const arr=JSON.parse(saved);
+      const all=Object.keys(rooms);
+      const ordered=arr.filter(n=>rooms[n]);
+      const extra=all.filter(n=>!ordered.includes(n));
+      return [...ordered,...extra];
+    }
+  }catch(e){}
+  return Object.keys(rooms);
+}
+
 function buildRoomBar(){
   const bar=document.getElementById('roomBar');bar.innerHTML='';
   Object.keys(rooms).forEach(name=>{
@@ -500,8 +517,20 @@ async function init(){
   loadTheme().catch(()=>{});
   if(sessionStorage.getItem('rc_auth')==='1'){document.getElementById('loginScreen').classList.add('hidden');}
   await loadAll();
-  const names=Object.keys(rooms);curRoom=names[0]||'';
+  const names=getRoomOrder();curRoom=names[0]||'';
   buildRoomBar();showPage('check');
+  // Auto-refresh data every 30 seconds
+  setInterval(async()=>{
+    await loadAll();
+    buildRoomBar();renderPage();
+  }, 30000);
+  // Refresh when page becomes visible again
+  document.addEventListener('visibilitychange',async()=>{
+    if(!document.hidden){
+      await loadAll();
+      buildRoomBar();renderPage();
+    }
+  });
 }
 init();
 </script>
