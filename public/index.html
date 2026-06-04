@@ -623,13 +623,14 @@ async function loadAll(){
   // Try server first
   try{
     const ctrl2=new AbortController();
-    const t2=setTimeout(()=>ctrl2.abort(),3000);
+    const t2=setTimeout(()=>ctrl2.abort(),5000);
     const r=await fetch('/api/data',{signal:ctrl2.signal});
     clearTimeout(t2);
     if(r.ok){
       const d=await r.json();
-      if(d.rooms&&Object.keys(d.rooms).length){
-        rooms=d.rooms;groups=d.groups||{};checkData=d.checkData||{};
+      // Always trust server
+      if(true){
+        rooms=d.rooms||{};groups=d.groups||{};checkData=d.checkData||{};
         // Restore room order from server
         if(d.roomOrder&&Array.isArray(d.roomOrder)){
           localStorage.setItem('rc_room_order',JSON.stringify(d.roomOrder));
