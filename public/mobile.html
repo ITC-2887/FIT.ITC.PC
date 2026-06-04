@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIT.ITC.PC</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700&display=swap');
+:root{
+  --bg:#0d0d0d;--surf:#181818;--surf2:#202020;--surf3:#2a2a2a;
+  --b1:#252525;--b2:#333;--b3:#444;
+  --t1:#ececec;--t2:#888;--t3:#444;
+  --acc:#c8f000;--acc2:#00d4aa;--err:#ff5555;--warn:#ffaa33;
+  --pc-bg:#0f1f0f;--pc-bd:#2e6e2e;--pc-t:#6ec96e;
+  --mon-bg:#1e1c10;--mon-bd:#5a5020;--mon-t:#a89050;
+  --sp-bg:#1a0f1f;--sp-bd:#6e2e9e;--sp-t:#b06ed0;
+  --hi-today:rgba(200,240,0,0.22);--hi-today-bd:#c8f000;
+  --hi-ok:rgba(0,212,170,0.18);--hi-ok-bd:#00d4aa;
+  --hi-ng:rgba(255,85,85,0.22);--hi-ng-bd:#ff5555;
+  --hi-warn:rgba(255,170,51,0.22);--hi-warn-bd:#ffaa33;
+  --nav-h:60px;--header-h:52px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:opacity .3s}
+#loginScreen.hidden{opacity:0;pointer-events:none}
+.login-box{width:calc(100vw - 40px);max-width:380px;padding:40px 28px;background:var(--surf);border:1px solid var(--b2);border-radius:12px}
+.login-logo{font-family:'Syne',sans-serif;font-weight:700;font-size:26px;margin-bottom:4px}
+.login-sub{font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:32px}
+.login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.login-label{font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase}
+.login-input{background:var(--surf2);border:1px solid var(--b2);border-radius:6px;color:var(--t1);font-family:'DM Mono',monospace;font-size:16px;padding:12px 14px;outline:none;width:100%;transition:.15s}
+.login-input:focus{border-color:var(--acc)}
+.login-btn{width:100%;padding:14px;background:#2563eb;border:none;border-radius:6px;color:#fff;font-family:'DM Mono',monospace;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px}
+.login-err{font-size:11px;color:var(--err);text-align:center;margin-top:10px;min-height:16px}
+
+/* ── HEADER ── */
+.header{display:flex;align-items:center;height:var(--header-h);background:var(--surf);border-bottom:1px solid var(--b1);padding:0 16px;gap:12px;flex-shrink:0}
+.header-logo{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.header-room-wrap{flex:1;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.header-room-wrap::-webkit-scrollbar{display:none}
+.room-chip{display:inline-block;padding:5px 12px;border:1px solid var(--b2);border-radius:20px;font-size:11px;color:var(--t2);cursor:pointer;margin-right:5px;transition:.12s;background:transparent;font-family:'DM Mono',monospace}
+.room-chip.on{background:var(--acc);border-color:var(--acc);color:#000;font-weight:500}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:background .3s}
+.sync-dot.saved{background:var(--acc2)}
+.sync-dot.saving{background:var(--warn);animation:blink .7s infinite}
+.sync-dot.error{background:var(--err)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── BODY ── */
+.body{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── CHECK PAGE ── */
+.check-page{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+
+/* Today header card */
+.today-card{background:var(--surf);border:1px solid rgba(200,240,0,.25);border-radius:10px;padding:14px 16px}
+.today-date{font-family:'Syne',sans-serif;font-size:20px;color:var(--acc)}
+.today-meta{font-size:10px;color:var(--t2);margin-top:2px;margin-bottom:10px}
+.today-grp-name{font-size:15px;font-weight:500;color:var(--t1);margin-bottom:2px}
+.today-grp-sub{font-size:11px;color:var(--t2)}
+.progress-bar-wrap{margin-top:10px;background:var(--surf2);border-radius:4px;height:6px;overflow:hidden}
+.progress-bar{height:100%;background:var(--acc);border-radius:4px;transition:width .4s}
+.progress-label{font-size:10px;color:var(--t2);text-align:right;margin-top:4px}
+
+/* Device list */
+.dev-list-header{font-size:9px;letter-spacing:.12em;color:var(--t3);text-transform:uppercase;padding:0 4px;margin-top:4px}
+.dev-card{background:var(--surf);border:1px solid var(--b1);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .12s,background .12s;min-height:60px}
+.dev-card:active{background:var(--surf2)}
+.dev-card.status-ok{border-color:var(--hi-ok-bd);background:var(--hi-ok)}
+.dev-card.status-ng{border-color:var(--hi-ng-bd);background:var(--hi-ng)}
+.dev-card.status-warn{border-color:var(--hi-warn-bd);background:var(--hi-warn)}
+.dev-card.status-today{border-color:var(--hi-today-bd)}
+.dev-card-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.dev-card-icon.pc{background:var(--pc-bg);border:1px solid var(--pc-bd)}
+.dev-card-icon.mon{background:var(--mon-bg);border:1px solid var(--mon-bd)}
+.dev-card-icon.sp{background:var(--sp-bg);border:1px solid var(--sp-bd)}
+.dev-card-info{flex:1;min-width:0}
+.dev-card-label{font-size:14px;font-weight:500;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dev-card-sub{font-size:10px;color:var(--t2);margin-top:2px}
+.dev-card-status{flex-shrink:0;font-size:12px;font-weight:500;padding:4px 10px;border-radius:4px;border:1px solid}
+.dev-card-status.ok{background:var(--hi-ok);border-color:var(--hi-ok-bd);color:var(--acc2)}
+.dev-card-status.ng{background:var(--hi-ng);border-color:var(--hi-ng-bd);color:var(--err)}
+.dev-card-status.warn{background:var(--hi-warn);border-color:var(--hi-warn-bd);color:var(--warn)}
+.dev-card-status.none{background:var(--surf2);border-color:var(--b2);color:var(--t3)}
+
+/* No group message */
+.empty-msg{text-align:center;color:var(--t3);font-size:12px;padding:40px 20px;line-height:2}
+
+/* ── HIST PAGE ── */
+.hist-page{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.hist-day-group{background:var(--surf);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+.hist-day-header{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px}
+.hist-day-date{font-size:13px;font-weight:500;color:var(--t1)}
+.hist-day-sub{font-size:10px;color:var(--t2);flex:1}
+.hist-day-badges{display:flex;gap:5px}
+.hbadge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:500}
+.hbadge.ok{background:var(--hi-ok);color:var(--acc2)}
+.hbadge.ng{background:var(--hi-ng);color:var(--err)}
+.hbadge.warn{background:var(--hi-warn);color:var(--warn)}
+.hist-dev-row{padding:10px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px;font-size:12px}
+.hist-dev-row:last-child{border-bottom:none}
+.hist-dev-label{flex:1;color:var(--t1)}
+.hist-dev-note{font-size:10px;color:var(--t2);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-dev-status{font-size:11px;padding:2px 8px;border-radius:3px;border:1px solid;flex-shrink:0}
+.hist-dev-status.ok{background:var(--hi-ok);border-color:var(--hi-ok-bd);color:var(--acc2)}
+.hist-dev-status.ng{background:var(--hi-ng);border-color:var(--hi-ng-bd);color:var(--err)}
+.hist-dev-status.warn{background:var(--hi-warn);border-color:var(--hi-warn-bd);color:var(--warn)}
+.hist-empty{text-align:center;color:var(--t3);font-size:12px;padding:40px 20px}
+
+/* ── STATUS POPUP ── */
+.popup-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s}
+.popup-bg.open{opacity:1;pointer-events:all}
+.popup-sheet{background:var(--surf);border-radius:16px 16px 0 0;padding:20px 20px 36px;width:100%;transform:translateY(100%);transition:transform .25s;max-height:85vh;overflow-y:auto}
+.popup-bg.open .popup-sheet{transform:translateY(0)}
+.popup-handle{width:36px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 16px}
+.popup-title{font-size:16px;font-weight:500;color:var(--t1);margin-bottom:4px}
+.popup-sub{font-size:11px;color:var(--t2);margin-bottom:18px}
+.popup-btns{display:flex;flex-direction:column;gap:10px}
+.popup-btn{padding:16px;border-radius:10px;border:1px solid;font-family:'DM Mono',monospace;font-size:14px;font-weight:500;cursor:pointer;text-align:center;transition:.12s}
+.popup-ok{background:var(--hi-ok);border-color:var(--hi-ok-bd);color:var(--acc2)}
+.popup-warn{background:var(--hi-warn);border-color:var(--hi-warn-bd);color:var(--warn)}
+.popup-ng{background:var(--hi-ng);border-color:var(--hi-ng-bd);color:var(--err)}
+.popup-reset{background:var(--surf2);border-color:var(--b2);color:var(--t2)}
+.popup-note{width:100%;margin-top:8px;background:var(--surf2);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-family:'DM Mono',monospace;font-size:14px;padding:12px 14px;resize:none;outline:none;min-height:72px}
+.popup-note:focus{border-color:var(--acc)}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{display:flex;height:var(--nav-h);background:var(--surf);border-top:1px solid var(--b1);flex-shrink:0}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:none;background:transparent;color:var(--t2);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:.15s;position:relative}
+.nav-btn.on{color:var(--acc)}
+.nav-btn.on::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--acc);border-radius:0 0 2px 2px}
+.nav-icon{font-size:22px;line-height:1}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--acc);color:#000;font-size:12px;font-family:'DM Mono',monospace;padding:8px 18px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;white-space:nowrap;z-index:9999}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo"><span style="color:#4a9eff">FIT</span><span style="color:var(--t3)">.</span><span style="color:#a0c8ff">ITC</span><span style="color:var(--t3)">.</span><span style="color:#e0eeff">PC</span></div>
+    <div class="login-sub">教室設備管理システム</div>
+    <div class="login-field">
+      <div class="login-label">ユーザー名</div>
+      <input class="login-input" id="loginUser" type="text" placeholder="FIT.ITC.PC" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <div class="login-label">パスワード</div>
+      <input class="login-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo"><span style="color:#4a9eff">FIT</span><span style="color:var(--t3)">.</span><span style="color:#a0c8ff">ITC</span><span style="color:var(--t3)">.</span><span style="color:#e0eeff">PC</span></div>
+  <div class="header-room-wrap" id="roomBar"></div>
+  <div class="sync-dot" id="syncDot" title="同期状態"></div>
+</div>
+
+<!-- BODY -->
+<div class="body" id="pageBody">
+  <!-- check page -->
+  <div class="check-page" id="checkPage" style="display:none"></div>
+  <!-- hist page -->
+  <div class="hist-page" id="histPage" style="display:none"></div>
+</div>
+
+<!-- STATUS POPUP (bottom sheet) -->
+<div class="popup-bg" id="popupBg" onclick="closePopupBg(event)">
+  <div class="popup-sheet" id="popupSheet"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn on" id="nav-check" onclick="showPage('check')">
+    <span class="nav-icon">✅</span>本日の検査
+  </button>
+  <button class="nav-btn" id="nav-hist" onclick="showPage('hist')">
+    <span class="nav-icon">📋</span>履歴
+  </button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────
+const CREDS = { user: 'FIT.ITC.PC', pass: 'FIT.ITC.2887' };
+let rooms = {}, groups = {}, checkData = {}, curRoom = '', curPage = 'check';
+
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+const fmtDate = s => s.replace(/-/g, '/');
+const dayOfYear = d => { const s = new Date(d.getFullYear(),0,0); return Math.floor((d-s)/86400000); };
+const wd = ['日','月','火','水','木','金','土'];
+
+function getGrps() { return groups[curRoom] || []; }
+function getTodayGrp() {
+  const grps = getGrps(); if (!grps.length) return null;
+  return grps[(dayOfYear(new Date())-1) % grps.length];
+}
+
+// ── SYNC ───────────────────────────────
+function setSyncDot(s) {
+  const el = document.getElementById('syncDot');
+  if (!el) return;
+  el.className = 'sync-dot ' + s;
+}
+
+async function loadAll() {
+  try {
+    const r = await fetch('/api/data');
+    if (r.ok) {
+      const d = await r.json();
+      if (d.rooms && Object.keys(d.rooms).length) {
+        rooms = d.rooms; groups = d.groups||{}; checkData = d.checkData||{};
+        setSyncDot('saved');
+        return;
+      }
+    }
+  } catch(e) {}
+  try { const r = localStorage.getItem('rc_rooms'); if(r) rooms = JSON.parse(r); } catch(e) {}
+  try { const g = localStorage.getItem('rc_groups'); if(g) groups = JSON.parse(g); } catch(e) {}
+  try { const c = localStorage.getItem('rc_checks'); if(c) checkData = JSON.parse(c); } catch(e) {}
+  setSyncDot('');
+}
+
+async function saveChecks() {
+  localStorage.setItem('rc_checks', JSON.stringify(checkData));
+  setSyncDot('saving');
+  try {
+    const d = { rooms, groups, checkData };
+    const r = await fetch('/api/data', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(d)
+    });
+    if (r.ok) setSyncDot('saved');
+    else setSyncDot('error');
+  } catch(e) { setSyncDot('error'); }
+}
+
+async function loadTheme() {
+  try {
+    const r = await fetch('/api/theme');
+    if (r.ok) {
+      const d = await r.json();
+      if (d.ok && d.theme) {
+        Object.entries(d.theme).forEach(([v,val]) => document.documentElement.style.setProperty(v, val));
+        return;
+      }
+    }
+  } catch(e) {}
+  try {
+    const saved = localStorage.getItem('rc_theme');
+    if (saved) { const t = JSON.parse(saved); Object.entries(t).forEach(([v,val]) => document.documentElement.style.setProperty(v, val)); }
+  } catch(e) {}
+}
+
+// ── LOGIN ──────────────────────────────
+function checkLogin() {
+  if (sessionStorage.getItem('rc_auth') === '1') {
+    document.getElementById('loginScreen').classList.add('hidden');
+  }
+}
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === CREDS.user && p === CREDS.pass) {
+    sessionStorage.setItem('rc_auth', '1');
+    const ls = document.getElementById('loginScreen');
+    ls.style.opacity = '0';
+    setTimeout(() => ls.classList.add('hidden'), 350);
+  } else {
+    document.getElementById('loginErr').textContent = 'ユーザー名またはパスワードが違います';
+    document.getElementById('loginPass').value = '';
+    const box = document.querySelector('.login-box');
+    box.style.transform = 'translateX(-6px)';
+    setTimeout(() => { box.style.transform = 'translateX(6px)'; setTimeout(() => { box.style.transform = ''; }, 80); }, 80);
+  }
+}
+
+// ── ROOM BAR ──────────────────────────
+function buildRoomBar() {
+  const bar = document.getElementById('roomBar');
+  bar.innerHTML = '';
+  Object.keys(rooms).forEach(name => {
+    const b = document.createElement('button');
+    b.className = 'room-chip' + (name === curRoom ? ' on' : '');
+    b.textContent = name;
+    b.onclick = () => { curRoom = name; buildRoomBar(); renderPage(); };
+    bar.appendChild(b);
+  });
+}
+
+// ── PAGE SWITCH ────────────────────────
+function showPage(page) {
+  curPage = page;
+  document.getElementById('nav-check').classList.toggle('on', page === 'check');
+  document.getElementById('nav-hist').classList.toggle('on', page === 'hist');
+  document.getElementById('checkPage').style.display = page === 'check' ? 'flex' : 'none';
+  document.getElementById('histPage').style.display  = page === 'hist'  ? 'flex' : 'none';
+  renderPage();
+}
+
+function renderPage() {
+  if (curPage === 'check') renderCheck();
+  else renderHist();
+}
+
+// ── CHECK PAGE ─────────────────────────
+function renderCheck() {
+  const page = document.getElementById('checkPage');
+  page.innerHTML = '';
+  const grp = getTodayGrp();
+  const todayStr = today();
+  const now = new Date();
+
+  // Today card
+  const card = el('div', 'today-card');
+  card.innerHTML = `
+    <div class="today-date">${fmtDate(todayStr)}</div>
+    <div class="today-meta">${wd[now.getDay()]}曜日 · ${curRoom}</div>
+    ${grp ? `
+      <div class="today-grp-name">📍 ${esc(grp.name)}</div>
+      <div class="today-grp-sub">${grp.deviceIds.length}台 検査対象</div>
+    ` : '<div style="color:var(--t3);font-size:12px">グループ未設定</div>'}
+  `;
+
+  if (grp && grp.deviceIds.length) {
+    const total = grp.deviceIds.length;
+    const done  = grp.deviceIds.filter(id => getStatus(todayStr, id)).length;
+    const pct   = Math.round(done / total * 100);
+    card.innerHTML += `
+      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+      <div class="progress-label">${done}/${total} 完了 (${pct}%)</div>
+    `;
+  }
+  page.appendChild(card);
+
+  if (!grp) {
+    const msg = el('div', 'empty-msg');
+    msg.innerHTML = 'PCから<br>「列グループ設定」で<br>グループを作成してください';
+    page.appendChild(msg);
+    return;
+  }
+
+  if (!grp.deviceIds.length) {
+    const msg = el('div', 'empty-msg');
+    msg.textContent = 'このグループにはデバイスが設定されていません';
+    page.appendChild(msg);
+    return;
+  }
+
+  // Device list header
+  const hdr = el('div', 'dev-list-header');
+  hdr.textContent = 'デバイス一覧';
+  page.appendChild(hdr);
+
+  grp.deviceIds.forEach(did => {
+    const dv = (rooms[curRoom]||[]).find(d => d.id === did);
+    if (!dv) return;
+    const st = getStatus(todayStr, did);
+    const card2 = el('div', 'dev-card' + (st ? ' status-' + st : ' status-today'));
+    
+    // icon
+    const icon = el('div', 'dev-card-icon ' + (dv.type||'pc'));
+    icon.textContent = dv.type === 'mon' ? '🖥️' : dv.type === 'sp' ? '⚙️' : '💻';
+    
+    // info
+    const info = el('div', 'dev-card-info');
+    info.innerHTML = `<div class="dev-card-label">${esc(dv.label||dv.id)}</div>
+      <div class="dev-card-sub">${dv.pc&&dv.monitor ? `PC:${dv.pc} / モニター:${dv.monitor}` : dv.note||'—'}</div>`;
+    
+    // status badge
+    const badge = el('div', 'dev-card-status ' + (st||'none'));
+    badge.textContent = st === 'ok' ? '✓ 正常' : st === 'ng' ? '✗ 異常' : st === 'warn' ? '△ 注意' : '未確認';
+    
+    card2.appendChild(icon);
+    card2.appendChild(info);
+    card2.appendChild(badge);
+    card2.onclick = () => openPopup(did, dv, st);
+    page.appendChild(card2);
+  });
+}
+
+// ── HIST PAGE ──────────────────────────
+function renderHist() {
+  const page = document.getElementById('histPage');
+  page.innerHTML = '';
+  const dates = Object.keys(checkData).sort().reverse();
+  
+  let hasAny = false;
+  dates.forEach(dateStr => {
+    const roomData = checkData[dateStr];
+    if (!roomData) return;
+    Object.entries(roomData).forEach(([room, grpData]) => {
+      if (room !== curRoom) return;
+      Object.entries(grpData).forEach(([grpId, devData]) => {
+        hasAny = true;
+        const grp = (groups[room]||[]).find(g => g.id === grpId);
+        const vals = Object.values(devData);
+        const ok   = vals.filter(v => v.status === 'ok').length;
+        const ng   = vals.filter(v => v.status === 'ng').length;
+        const wa   = vals.filter(v => v.status === 'warn').length;
+
+        const group = el('div', 'hist-day-group');
+        
+        // Header
+        const hdr = el('div', 'hist-day-header');
+        hdr.innerHTML = `
+          <div class="hist-day-date">${fmtDate(dateStr)}</div>
+          <div class="hist-day-sub">${grp ? esc(grp.name) : grpId}</div>
+          <div class="hist-day-badges">
+            ${ok ? `<span class="hbadge ok">✓${ok}</span>` : ''}
+            ${ng ? `<span class="hbadge ng">✗${ng}</span>` : ''}
+            ${wa ? `<span class="hbadge warn">△${wa}</span>` : ''}
+          </div>
+        `;
+        group.appendChild(hdr);
+
+        // Device rows
+        Object.entries(devData).forEach(([did, {status, note}]) => {
+          const dv = (rooms[room]||[]).find(d => d.id === did);
+          const lbl = dv ? dv.label : did;
+          const row = el('div', 'hist-dev-row');
+          row.innerHTML = `
+            <div class="hist-dev-label">${esc(lbl)}</div>
+            ${note ? `<div class="hist-dev-note">${esc(note)}</div>` : ''}
+            <div class="hist-dev-status ${status}">${status==='ok'?'✓ 正常':status==='ng'?'✗ 異常':status==='warn'?'△ 注意':'—'}</div>
+          `;
+          group.appendChild(row);
+        });
+
+        page.appendChild(group);
+      });
+    });
+  });
+
+  if (!hasAny) {
+    const msg = el('div', 'hist-empty');
+    msg.textContent = '検査履歴がありません';
+    page.appendChild(msg);
+  }
+}
+
+// ── STATUS POPUP ───────────────────────
+let popupDevId = null;
+
+function openPopup(did, dv, curSt) {
+  popupDevId = did;
+  const todayStr = today();
+  const curNote = checkData[todayStr]?.[curRoom]?.[getTodayGrp()?.id]?.[did]?.note || '';
+  
+  const sheet = document.getElementById('popupSheet');
+  sheet.innerHTML = `
+    <div class="popup-handle"></div>
+    <div class="popup-title">${esc(dv.label||dv.id)}</div>
+    <div class="popup-sub">タップして検査状態を記録</div>
+    <div class="popup-btns">
+      <button class="popup-btn popup-ok"  onclick="doCheck('ok')">✓ 正常</button>
+      <button class="popup-btn popup-warn" onclick="doCheck('warn')">△ 要注意</button>
+      <button class="popup-btn popup-ng"  onclick="doCheck('ng')">✗ 異常あり</button>
+      ${curSt ? '<button class="popup-btn popup-reset" onclick="doCheck(null)">リセット</button>' : ''}
+    </div>
+    <textarea class="popup-note" id="popNote" rows="3" placeholder="メモ（任意）">${esc(curNote)}</textarea>
+  `;
+  document.getElementById('popupBg').classList.add('open');
+}
+
+function closePopupBg(e) {
+  if (e.target === document.getElementById('popupBg')) closePopup();
+}
+function closePopup() {
+  document.getElementById('popupBg').classList.remove('open');
+  popupDevId = null;
+}
+
+function doCheck(status) {
+  if (!popupDevId) return;
+  const note = document.getElementById('popNote')?.value || '';
+  const todayStr = today();
+  const grp = getTodayGrp();
+  if (!grp) return;
+
+  if (!checkData[todayStr]) checkData[todayStr] = {};
+  if (!checkData[todayStr][curRoom]) checkData[todayStr][curRoom] = {};
+  if (!checkData[todayStr][curRoom][grp.id]) checkData[todayStr][curRoom][grp.id] = {};
+
+  if (status === null) {
+    delete checkData[todayStr][curRoom][grp.id][popupDevId];
+  } else {
+    checkData[todayStr][curRoom][grp.id][popupDevId] = { status, note };
+  }
+
+  closePopup();
+  saveChecks();
+  renderPage();
+  toast(status === 'ok' ? '✓ 正常' : status === 'ng' ? '✗ 異常を記録' : status === 'warn' ? '△ 要注意を記録' : 'リセットしました');
+}
+
+// ── STATUS HELPER ──────────────────────
+function getStatus(dateStr, devId) {
+  const grp = getTodayGrp();
+  if (!grp) return null;
+  return checkData[dateStr]?.[curRoom]?.[grp.id]?.[devId]?.status || null;
+}
+
+// ── UTILS ──────────────────────────────
+function el(tag, cls) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+let tT;
+function toast(msg) {
+  const e = document.getElementById('toast');
+  e.textContent = msg; e.classList.add('show');
+  clearTimeout(tT); tT = setTimeout(() => e.classList.remove('show'), 2000);
+}
+
+// ── INIT ───────────────────────────────
+async function init() {
+  await loadTheme();
+  checkLogin();
+  await loadAll();
+  const roomNames = Object.keys(rooms);
+  curRoom = roomNames[0] || '';
+  buildRoomBar();
+  showPage('check');
+}
+
+init();
+</script>
+</body>
+</html>
