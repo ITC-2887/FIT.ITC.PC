@@ -12,6 +12,8 @@
   --t1:#ececec;--t2:#888;--t3:#444;
   --acc:#c8f000;--acc2:#00d4aa;--err:#ff5555;--warn:#ffaa33;
   --pc-bg:#0f1f0f;--pc-bd:#2e6e2e;--pc-t:#6ec96e;
+  --mon-bg:#1e1c10;--mon-bd:#5a5020;--mon-t:#a89050;
+  --sp-bg:#1a0f1f;--sp-bd:#6e2e9e;--sp-t:#b06ed0;
   --hi-today:rgba(200,240,0,0.22);--hi-today-bd:#c8f000;
   --hi-ok:rgba(0,212,170,0.18);--hi-ok-bd:#00d4aa;
   --hi-ng:rgba(255,85,85,0.22);--hi-ng-bd:#ff5555;
@@ -24,7 +26,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;height
 /* LOGIN */
 #loginScreen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg)}
 #loginScreen.hidden{display:none}
-.login-box{width:calc(100vw - 40px);max-width:360px;padding:36px 24px;background:var(--surf);border:1px solid var(--b2);border-radius:12px}
+.login-box{width:calc(100vw - 40px);max-width:360px;padding:36px 24px;background:var(--surf);border:1px solid var(--b2);border-radius:12px;transition:transform .15s}
 .login-logo{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:4px}
 .login-sub{font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:28px}
 .login-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
@@ -35,96 +37,137 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;height
 .login-err{font-size:11px;color:var(--err);text-align:center;margin-top:8px;min-height:15px}
 
 /* HEADER */
-.header{display:flex;align-items:center;height:50px;background:var(--surf);border-bottom:1px solid var(--b1);padding:0 14px;gap:10px;flex-shrink:0}
-.header-logo{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex-shrink:0}
+.header{display:flex;align-items:center;height:50px;background:var(--surf);border-bottom:1px solid var(--b1);padding:0 12px;gap:8px;flex-shrink:0}
+.header-logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex-shrink:0}
 .room-scroll{flex:1;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
 .room-scroll::-webkit-scrollbar{display:none}
-.room-chip{display:inline-block;padding:5px 11px;border:1px solid var(--b2);border-radius:20px;font-size:11px;color:var(--t2);cursor:pointer;margin-right:4px;background:transparent;font-family:'DM Mono',monospace}
+.room-chip{display:inline-block;padding:4px 10px;border:1px solid var(--b2);border-radius:20px;font-size:11px;color:var(--t2);cursor:pointer;margin-right:4px;background:transparent;font-family:'DM Mono',monospace}
 .room-chip.on{background:var(--acc);border-color:var(--acc);color:#000;font-weight:500}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0}
 .sync-dot.ok{background:var(--acc2)}
 .sync-dot.saving{background:var(--warn);animation:blink .7s infinite}
 .sync-dot.err{background:var(--err)}
+.anomaly-top-btn{padding:4px 10px;background:transparent;border:1px solid var(--b2);border-radius:3px;color:var(--t2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;flex-shrink:0}
+.anomaly-top-btn.has-anomaly{border-color:var(--err);color:var(--err)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* CANVAS PAGE */
-#canvasPage{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
+/* BODY */
+.page{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.page.hidden{display:none}
 
-/* Today info bar - collapsible */
-.info-bar{background:var(--surf);border-bottom:1px solid var(--b1);overflow:hidden;transition:max-height .25s;max-height:120px;flex-shrink:0}
+/* ── CHECK PAGE ── */
+/* info bar */
+.info-bar{background:var(--surf);border-bottom:1px solid var(--b1);overflow:hidden;transition:max-height .25s;max-height:130px;flex-shrink:0}
 .info-bar.collapsed{max-height:0}
 .info-inner{padding:10px 14px;display:flex;align-items:center;gap:10px}
-.info-grp{flex:1;min-width:0}
-.info-grp-name{font-size:14px;font-weight:500;color:var(--acc)}
-.info-grp-sub{font-size:10px;color:var(--t2);margin-top:1px}
-.info-progress{text-align:right;flex-shrink:0}
+.info-grp-name{font-size:14px;font-weight:500;color:var(--acc);margin-bottom:2px}
+.info-grp-sub{font-size:10px;color:var(--t2)}
+.info-progress{flex-shrink:0}
 .progress-circle{width:44px;height:44px;position:relative}
 .progress-circle svg{transform:rotate(-90deg)}
 .progress-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--acc)}
 
-/* Toggle bar */
-.toggle-bar{display:flex;align-items:center;justify-content:space-between;padding:5px 14px;background:var(--surf2);border-bottom:1px solid var(--b1);flex-shrink:0;cursor:pointer}
-.toggle-bar-left{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--t2)}
-.toggle-bar-badges{display:flex;gap:5px}
-.tbadge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500}
+/* date nav */
+.date-nav-bar{display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--surf2);border-bottom:1px solid var(--b1);flex-shrink:0}
+.dnav-btn{background:transparent;border:1px solid var(--b2);border-radius:3px;color:var(--t2);cursor:pointer;font-size:14px;padding:3px 10px;line-height:1}
+.dnav-inp{background:var(--surf);border:1px solid var(--b1);border-radius:3px;color:var(--t1);font-family:'DM Mono',monospace;font-size:11px;padding:4px 6px;outline:none;flex:1}
+.dnav-today{background:transparent;border:1px solid var(--acc);border-radius:3px;color:var(--acc);cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;white-space:nowrap}
+
+/* toggle bar */
+.toggle-bar{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;background:var(--surf2);border-bottom:1px solid var(--b1);flex-shrink:0;cursor:pointer}
+.toggle-badges{display:flex;gap:4px;align-items:center}
+.tbadge{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:500}
 .tbadge.ok{background:var(--hi-ok);color:var(--acc2)}
 .tbadge.ng{background:var(--hi-ng);color:var(--err)}
 .tbadge.warn{background:var(--hi-warn);color:var(--warn)}
 .toggle-arrow{font-size:10px;color:var(--t3);transition:transform .2s}
 .toggle-arrow.open{transform:rotate(180deg)}
+.toggle-label{font-size:10px;color:var(--t2)}
 
-/* Canvas */
+/* canvas */
 .canvas-wrap{flex:1;overflow:hidden;position:relative;
   background:linear-gradient(var(--b1) 1px,transparent 1px),linear-gradient(90deg,var(--b1) 1px,transparent 1px);
-  background-size:20px 20px;background-position:-1px -1px;
-  touch-action:none}
+  background-size:20px 20px;background-position:-1px -1px;touch-action:none}
 .canvas-inner{position:relative;transform-origin:0 0;will-change:transform}
-#canvas{position:relative}
+#mCanvas{position:relative}
 
-/* Devices */
-.dev{position:absolute;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid;overflow:hidden;transition:outline .1s}
-.dev.today{outline:2px solid var(--hi-today-bd)}
-.dev.today::after{content:'';position:absolute;inset:0;background:var(--hi-today);pointer-events:none;border-radius:2px}
-.dev.st-ok{outline:2px solid var(--hi-ok-bd)}
-.dev.st-ok::after{content:'';position:absolute;inset:0;background:var(--hi-ok);pointer-events:none;border-radius:2px}
-.dev.st-ng{outline:2px solid var(--hi-ng-bd)}
-.dev.st-ng::after{content:'';position:absolute;inset:0;background:var(--hi-ng);pointer-events:none;border-radius:2px}
-.dev.st-warn{outline:2px solid var(--hi-warn-bd)}
-.dev.st-warn::after{content:'';position:absolute;inset:0;background:var(--hi-warn);pointer-events:none;border-radius:2px}
-.dev.today{cursor:pointer}
-.dev-label{font-size:7px;color:inherit;text-align:center;word-break:break-all;line-height:1.2;pointer-events:none;padding:1px}
+/* devices */
+.mdev{position:absolute;border-radius:3px;display:flex;align-items:center;justify-content:center;border:1px solid;overflow:hidden}
+.mdev.today{outline:2px solid var(--hi-today-bd);cursor:pointer}
+.mdev.today::after{content:'';position:absolute;inset:0;background:var(--hi-today);pointer-events:none;border-radius:2px}
+.mdev.st-ok{outline:2px solid var(--hi-ok-bd);cursor:pointer}
+.mdev.st-ok::after{content:'';position:absolute;inset:0;background:var(--hi-ok);pointer-events:none;border-radius:2px}
+.mdev.st-ng{outline:2px solid var(--hi-ng-bd);cursor:pointer}
+.mdev.st-ng::after{content:'';position:absolute;inset:0;background:var(--hi-ng);pointer-events:none;border-radius:2px}
+.mdev.st-warn{outline:2px solid var(--hi-warn-bd);cursor:pointer}
+.mdev.st-warn::after{content:'';position:absolute;inset:0;background:var(--hi-warn);pointer-events:none;border-radius:2px}
+.mdev.free-ng{outline:2px dashed var(--hi-ng-bd);cursor:pointer}
+.mdev.free-ng::after{content:'';position:absolute;inset:0;background:var(--hi-ng);pointer-events:none;border-radius:2px}
+.mdev.free-warn{outline:2px dashed var(--hi-warn-bd);cursor:pointer}
+.mdev.free-warn::after{content:'';position:absolute;inset:0;background:var(--hi-warn);pointer-events:none;border-radius:2px}
+.mdev.free-ok{outline:2px dashed var(--hi-ok-bd);cursor:pointer}
+.mdev.free-ok::after{content:'';position:absolute;inset:0;background:var(--hi-ok);pointer-events:none;border-radius:2px}
+.mdev.clickable{cursor:pointer}
+@keyframes mdevFlash{
+  0%,100%{outline:3px solid transparent;box-shadow:none}
+  25%,75%{outline:3px solid #ff8c00;box-shadow:0 0 16px rgba(255,140,0,.6)}
+  50%{outline:3px solid #ffaa00;box-shadow:0 0 28px rgba(255,170,0,.8)}
+}
+.mdev.flash{animation:mdevFlash .6s ease-in-out 4;z-index:200!important}
 
-/* All-ok button */
-.allok-btn{position:absolute;bottom:14px;right:14px;z-index:100;padding:10px 18px;background:var(--hi-ok);border:1px solid var(--hi-ok-bd);border-radius:24px;color:var(--acc2);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+/* fab buttons */
+.fab-wrap{position:absolute;bottom:14px;right:14px;z-index:100;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.fab{padding:10px 16px;border-radius:24px;border:1px solid;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap}
+.fab-ok{background:var(--hi-ok);border-color:var(--hi-ok-bd);color:var(--acc2)}
+.fab-reset{background:var(--surf);border-color:var(--b2);color:var(--t2);font-size:11px;padding:7px 12px}
 
-/* HIST PAGE */
-#histPage{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;display:none}
+/* ── HIST PAGE ── */
+.hist-wrap{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
 .hist-card{background:var(--surf);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
-.hist-card-header{padding:12px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--b1)}
+.hist-card-hdr{padding:11px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--b1)}
 .hist-card-date{font-size:12px;font-weight:500}
 .hist-card-grp{font-size:11px;color:var(--t2);flex:1}
 .hist-badges{display:flex;gap:4px}
-.hbadge{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:500}
+.hbadge{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:500}
 .hbadge.ok{background:var(--hi-ok);color:var(--acc2)}
 .hbadge.ng{background:var(--hi-ng);color:var(--err)}
 .hbadge.warn{background:var(--hi-warn);color:var(--warn)}
-.hist-dev{padding:9px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px}
+.hist-dev{padding:9px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;cursor:pointer}
 .hist-dev:last-child{border-bottom:none}
+.hist-dev:active{background:var(--surf2)}
 .hist-dev-lbl{flex:1;font-size:12px}
-.hist-dev-note{font-size:10px;color:var(--t3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hist-dev-st{font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid;flex-shrink:0}
-.hist-dev-st.ok{background:var(--hi-ok);border-color:var(--hi-ok-bd);color:var(--acc2)}
 .hist-dev-st.ng{background:var(--hi-ng);border-color:var(--hi-ng-bd);color:var(--err)}
 .hist-dev-st.warn{background:var(--hi-warn);border-color:var(--hi-warn-bd);color:var(--warn)}
 .res-btn{font-size:9px;padding:3px 8px;border-radius:3px;border:1px solid var(--acc2);color:var(--acc2);background:transparent;font-family:'DM Mono',monospace;cursor:pointer;flex-shrink:0}
 .res-btn.done{border-color:var(--b2);color:var(--t3)}
 
-/* BOTTOM SHEET */
+/* ── ANOMALY MODAL ── */
+#anomalyModal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:3000;opacity:0;pointer-events:none;transition:opacity .2s}
+#anomalyModal.open{opacity:1;pointer-events:all}
+.anomaly-box{background:var(--surf);border:1px solid var(--err);border-radius:10px;width:calc(100vw - 24px);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(255,85,85,.2)}
+.anomaly-hdr{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.anomaly-title{font-family:'Syne',sans-serif;font-size:13px;color:var(--err);flex:1}
+.anomaly-close{background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:0 4px}
+.anomaly-body{overflow-y:auto;padding:10px;flex:1}
+.anomaly-room-title{font-size:9px;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;margin:4px 0 6px;padding:0 2px}
+.anomaly-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--surf2);border-radius:5px;margin-bottom:4px;border:1px solid var(--b1);cursor:pointer;transition:background .12s}
+.anomaly-item:active{background:var(--surf3)}
+.anomaly-item.ng{border-color:var(--hi-ng-bd);background:var(--hi-ng)}
+.anomaly-item.warn{border-color:var(--hi-warn-bd);background:var(--hi-warn)}
+.anomaly-dev{font-size:12px;font-weight:500}
+.anomaly-st{font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid;flex-shrink:0}
+.anomaly-st.ng{background:var(--hi-ng);border-color:var(--hi-ng-bd);color:var(--err)}
+.anomaly-st.warn{background:var(--hi-warn);border-color:var(--hi-warn-bd);color:var(--warn)}
+.anomaly-footer{padding:10px 14px;border-top:1px solid var(--b1);display:flex;justify-content:flex-end;gap:6px;flex-shrink:0}
+
+/* ── BOTTOM SHEET ── */
 .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s}
 .sheet-bg.open{opacity:1;pointer-events:all}
 .sheet{background:var(--surf);border-radius:16px 16px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom)+28px);width:100%;transform:translateY(100%);transition:transform .25s;max-height:80vh;overflow-y:auto}
 .sheet-bg.open .sheet{transform:translateY(0)}
 .sheet-handle{width:36px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 14px}
+.sheet-tag{font-size:9px;color:var(--t2);padding:2px 8px;background:var(--surf2);border-radius:3px;display:inline-block;margin-bottom:6px}
 .sheet-title{font-size:16px;font-weight:500;margin-bottom:3px}
 .sheet-sub{font-size:11px;color:var(--t2);margin-bottom:16px}
 .sheet-btns{display:flex;flex-direction:column;gap:8px}
@@ -141,11 +184,11 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;height
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;color:var(--t2);font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;position:relative}
 .nav-btn.on{color:var(--acc)}
 .nav-btn.on::after{content:'';position:absolute;top:0;left:22%;right:22%;height:2px;background:var(--acc);border-radius:0 0 2px 2px}
-.nav-icon{font-size:21px;line-height:1}
+.nav-icon{font-size:20px;line-height:1}
 
 /* TOAST */
-#toast{position:fixed;bottom:calc(var(--nav-h)+12px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--acc);color:#000;font-size:12px;font-family:'DM Mono',monospace;padding:7px 16px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;white-space:nowrap;z-index:9000}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#mToast{position:fixed;bottom:calc(var(--nav-h)+12px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--acc);color:#000;font-size:12px;font-family:'DM Mono',monospace;padding:7px 16px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;white-space:nowrap;z-index:9000}
+#mToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
 </style>
 </head>
@@ -169,17 +212,17 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;height
 <div class="header">
   <div class="header-logo"><span style="color:#4a9eff">FIT</span><span style="color:var(--t3)">.</span><span style="color:#a0c8ff">ITC</span><span style="color:var(--t3)">.</span><span style="color:#e0eeff">PC</span></div>
   <div class="room-scroll" id="roomBar"></div>
+  <button class="anomaly-top-btn" id="anomalyTopBtn" onclick="openAnomalyModal()">⚠️</button>
   <div class="sync-dot" id="syncDot"></div>
 </div>
 
-<!-- CANVAS PAGE -->
-<div id="canvasPage" style="display:flex">
-  <!-- collapsible info bar -->
+<!-- CHECK PAGE -->
+<div class="page" id="checkPage">
   <div class="info-bar" id="infoBar">
     <div class="info-inner">
-      <div class="info-grp">
-        <div class="info-grp-name" id="grpName">—</div>
-        <div class="info-grp-sub" id="grpSub">今日の検査グループ</div>
+      <div style="flex:1;min-width:0">
+        <div class="info-grp-name" id="infoGrpName">—</div>
+        <div class="info-grp-sub" id="infoGrpSub"></div>
       </div>
       <div class="info-progress">
         <div class="progress-circle">
@@ -193,30 +236,51 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;height
       </div>
     </div>
   </div>
-  <!-- toggle bar -->
-  <div class="toggle-bar" id="toggleBar" onclick="toggleInfoBar()">
-    <div class="toggle-bar-left">
-      <span id="toggleBarText">詳細を隠す</span>
-      <div class="toggle-bar-badges" id="toggleBadges"></div>
+  <div class="date-nav-bar">
+    <button class="dnav-btn" onclick="shiftSelectedDate(-1)">‹</button>
+    <input class="dnav-inp" type="date" id="dateInp" onchange="onDateChange()">
+    <button class="dnav-btn" onclick="shiftSelectedDate(1)">›</button>
+    <button class="dnav-today" onclick="goToday()">今日</button>
+  </div>
+  <div class="toggle-bar" onclick="toggleInfoBar()">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="toggle-label" id="toggleLabel">詳細を隠す</span>
+      <div class="toggle-badges" id="toggleBadges"></div>
     </div>
     <span class="toggle-arrow open" id="toggleArrow">▲</span>
   </div>
-  <!-- canvas -->
   <div class="canvas-wrap" id="cWrap">
     <div class="canvas-inner" id="canvasInner">
-      <div id="canvas"></div>
+      <div id="mCanvas"></div>
     </div>
   </div>
-  <!-- all ok button -->
-  <button class="allok-btn" id="allOkBtn" onclick="markAllOk()">✓ 全て正常</button>
-  <button onclick="resetZoom()" style="position:absolute;bottom:14px;left:14px;z-index:100;padding:8px 12px;background:var(--surf);border:1px solid var(--b2);border-radius:20px;color:var(--t2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer">⊙ リセット</button>
+  <div class="fab-wrap">
+    <button class="fab fab-ok" id="allOkBtn" onclick="markAllOk()">✓ 全て正常</button>
+    <button class="fab fab-reset" onclick="resetZoom()">⊙ リセット</button>
+  </div>
 </div>
 
 <!-- HIST PAGE -->
-<div id="histPage"></div>
+<div class="page hidden" id="histPage">
+  <div class="hist-wrap" id="histWrap"></div>
+</div>
+
+<!-- ANOMALY MODAL -->
+<div id="anomalyModal">
+  <div class="anomaly-box">
+    <div class="anomaly-hdr">
+      <div class="anomaly-title">⚠️ 未解決の異常・要注意</div>
+      <button class="anomaly-close" onclick="closeAnomalyModal()">✕</button>
+    </div>
+    <div class="anomaly-body" id="anomalyBody"></div>
+    <div class="anomaly-footer">
+      <button style="padding:7px 16px;background:transparent;border:1px solid var(--b2);border-radius:4px;color:var(--t2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer" onclick="closeAnomalyModal()">閉じる</button>
+    </div>
+  </div>
+</div>
 
 <!-- BOTTOM SHEET -->
-<div class="sheet-bg" id="sheetBg" onclick="closeSheet(event)">
+<div class="sheet-bg" id="sheetBg" onclick="if(event.target===this)closeSheet()">
   <div class="sheet" id="sheet"></div>
 </div>
 
@@ -228,91 +292,123 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Mono',monospace;height
     <span class="nav-icon">📋</span>履歴</button>
 </div>
 
-<div id="toast"></div>
+<div id="mToast"></div>
 
 <script>
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
 const CREDS={user:'FIT.ITC.PC',pass:'FIT.ITC.2887'};
-let rooms={},groups={},checkData={},curRoom='',curPage='check',infoBarOpen=true;
+let rooms={},groups={},checkData={},freeEvalData={};
+let curRoom='',curPage='check',selectedDate='',infoCollapsed=false;
 let popDevId=null;
 
+// ════════════════════════════════════════
+// DATE UTILS
+// ════════════════════════════════════════
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const fmtDate=s=>s.replace(/-/g,'/');
-const wd=['日','月','火','水','木','金','土'];
+function shiftDate(dateStr,delta){
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const dt=new Date(y,m-1,d);dt.setDate(dt.getDate()+delta);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+function shiftSelectedDate(delta){selectedDate=shiftDate(selectedDate,delta);syncDateInp();renderPage();}
+function onDateChange(){const v=document.getElementById('dateInp').value;if(v&&v!==selectedDate){selectedDate=v;renderPage();}}
+function goToday(){selectedDate=today();syncDateInp();renderPage();}
+function syncDateInp(){const el=document.getElementById('dateInp');if(el)el.value=selectedDate;}
 
+// ════════════════════════════════════════
+// GROUP / ROTATION
+// ════════════════════════════════════════
 function getGrps(){return groups[curRoom]||[];}
 function getTodayGrp(){
   const grps=getGrps();if(!grps.length)return null;
-  const d=new Date();const dow=d.getDay();if(dow===0)return null;
+  const d=new Date();if(d.getDay()===0)return null;
   const epoch=new Date(2024,0,1);
   const cur=new Date(d.getFullYear(),d.getMonth(),d.getDate());
   const diff=Math.floor((cur-epoch)/86400000);
-  const weeks=Math.floor(diff/7);const rem=diff%7;
-  const idx=(weeks*6+(rem<6?rem:5))%grps.length;
-  return grps[idx];
+  const weeks=Math.floor(diff/7),rem=diff%7;
+  return grps[(weeks*6+(rem<6?rem:5))%grps.length];
 }
-function getStatus(devId){
-  const grp=getTodayGrp();if(!grp)return null;
-  return checkData[today()]?.[curRoom]?.[grp.id]?.[devId]?.status||null;
+function getDayForGrp(idx){
+  const grps=getGrps();const n=grps.length;if(!n)return '—';
+  const todayGrp=getTodayGrp();if(!todayGrp)return '—';
+  const todayIdx=grps.indexOf(todayGrp);
+  const diff=(idx-todayIdx+n)%n;
+  if(diff===0)return '📍 今日';if(diff===1)return '明日';return diff+'日後';
 }
 
-// ── SYNC ──
+// ════════════════════════════════════════
+// CHECK STATUS
+// ════════════════════════════════════════
+function getCheckStatus(devId){
+  const grp=getTodayGrp();if(!grp)return null;
+  return checkData[selectedDate]?.[curRoom]?.[grp.id]?.[devId]?.status||null;
+}
+function setCheckStatus(devId,status,note=''){
+  const grp=getTodayGrp();if(!grp)return;
+  if(!checkData[selectedDate])checkData[selectedDate]={};
+  if(!checkData[selectedDate][curRoom])checkData[selectedDate][curRoom]={};
+  if(!checkData[selectedDate][curRoom][grp.id])checkData[selectedDate][curRoom][grp.id]={};
+  if(status===null)delete checkData[selectedDate][curRoom][grp.id][devId];
+  else checkData[selectedDate][curRoom][grp.id][devId]={status,note,resolved:false};
+}
+function getFreeEvalStatus(devId){
+  return freeEvalData[selectedDate]?.[curRoom]?.[devId]?.status||null;
+}
+function setFreeEvalStatus(devId,status,note=''){
+  if(!freeEvalData[selectedDate])freeEvalData[selectedDate]={};
+  if(!freeEvalData[selectedDate][curRoom])freeEvalData[selectedDate][curRoom]={};
+  if(status===null)delete freeEvalData[selectedDate][curRoom][devId];
+  else freeEvalData[selectedDate][curRoom][devId]={status,note,resolved:false};
+}
+
+// ════════════════════════════════════════
+// SYNC
+// ════════════════════════════════════════
 function setSyncDot(s){const el=document.getElementById('syncDot');if(el)el.className='sync-dot '+s;}
+function saveFreeEval(){localStorage.setItem('rc_free_eval',JSON.stringify(freeEvalData));}
+function loadFreeEval(){try{const s=localStorage.getItem('rc_free_eval');if(s)freeEvalData=JSON.parse(s);}catch(e){}}
+
 async function loadAll(){
   try{
-    const ctrl=new AbortController();
-    setTimeout(()=>ctrl.abort(),5000);
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),5000);
     const r=await fetch('/api/data',{signal:ctrl.signal});
     if(r.ok){
       const d=await r.json();
-      // Always trust server - it is the source of truth
-      rooms=d.rooms||{};
-      groups=d.groups||{};
-      checkData=d.checkData||{};
-      if(d.roomOrder&&Array.isArray(d.roomOrder)){
-        localStorage.setItem('rc_room_order',JSON.stringify(d.roomOrder));
-      }
-      setSyncDot('ok');
-      return;
+      rooms=d.rooms||{};groups=d.groups||{};checkData=d.checkData||{};
+      if(d.roomOrder&&Array.isArray(d.roomOrder))localStorage.setItem('rc_room_order',JSON.stringify(d.roomOrder));
+      setSyncDot('ok');return;
     }
-  }catch(e){
-    console.warn('Server fetch failed, using localStorage fallback',e);
-  }
-  // Only fall back to localStorage if server is unreachable
+  }catch(e){}
   try{const r=localStorage.getItem('rc_rooms');if(r)rooms=JSON.parse(r);}catch(e){}
   try{const g=localStorage.getItem('rc_groups');if(g)groups=JSON.parse(g);}catch(e){}
-  try{const cc=localStorage.getItem('rc_checks');if(cc)checkData=JSON.parse(cc);}catch(e){}
+  try{const c=localStorage.getItem('rc_checks');if(c)checkData=JSON.parse(c);}catch(e){}
   setSyncDot('err');
 }
+
 async function saveChecks(){
   localStorage.setItem('rc_checks',JSON.stringify(checkData));
   setSyncDot('saving');
   try{
-    // Fetch latest full data first, then merge checkData and re-save
-    const ctrl=new AbortController();
-    setTimeout(()=>ctrl.abort(),3000);
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),3000);
     const latest=await fetch('/api/data',{signal:ctrl.signal});
     let payload={rooms,groups,checkData};
-    if(latest.ok){
-      const d=await latest.json();
-      // Merge: keep server's rooms/groups, use our checkData
-      payload={
-        rooms:d.rooms||rooms,
-        groups:d.groups||groups,
-        checkData:checkData,
-        roomOrder:d.roomOrder||[]
-      };
-      rooms=payload.rooms;groups=payload.groups;
-    }
+    if(latest.ok){const d=await latest.json();payload={rooms:d.rooms||rooms,groups:d.groups||groups,checkData,roomOrder:d.roomOrder||[]}; rooms=payload.rooms;groups=payload.groups;}
     const r=await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(r.ok)setSyncDot('ok');else setSyncDot('err');
   }catch(e){setSyncDot('err');}
 }
+
 async function loadTheme(){
   try{const s=localStorage.getItem('rc_theme');if(s){const t=JSON.parse(s);Object.entries(t).forEach(([v,val])=>document.documentElement.style.setProperty(v,val));}}catch(e){}
-  try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),2000);const r=await fetch('/api/theme',{signal:ctrl.signal});if(r.ok){const d=await r.json();if(d.ok&&d.theme){Object.entries(d.theme).forEach(([v,val])=>document.documentElement.style.setProperty(v,val));}}}catch(e){}
+  try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),2000);const r=await fetch('/api/theme',{signal:ctrl.signal});if(r.ok){const d=await r.json();if(d.ok&&d.theme)Object.entries(d.theme).forEach(([v,val])=>document.documentElement.style.setProperty(v,val));}}catch(e){}
 }
 
-// ── LOGIN ──
+// ════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════
 function doLogin(){
   const u=document.getElementById('loginUser').value.trim();
   const p=document.getElementById('loginPass').value;
@@ -323,315 +419,410 @@ function doLogin(){
     document.getElementById('loginErr').textContent='ユーザー名またはパスワードが違います';
     document.getElementById('loginPass').value='';
     const box=document.querySelector('.login-box');
-    box.style.transform='translateX(-5px)';setTimeout(()=>{box.style.transform='translateX(5px)';setTimeout(()=>{box.style.transform='';},70);},70);
+    box.style.transform='translateX(-5px)';
+    setTimeout(()=>{box.style.transform='translateX(5px)';setTimeout(()=>{box.style.transform='';},70);},70);
   }
 }
 
-// ── ROOM BAR ──
+// ════════════════════════════════════════
+// ROOM BAR
+// ════════════════════════════════════════
 function getRoomOrder(){
-  try{
-    const saved=localStorage.getItem('rc_room_order');
-    if(saved){
-      const arr=JSON.parse(saved);
-      const all=Object.keys(rooms);
-      const ordered=arr.filter(n=>rooms[n]);
-      const extra=all.filter(n=>!ordered.includes(n));
-      return [...ordered,...extra];
-    }
-  }catch(e){}
+  try{const s=localStorage.getItem('rc_room_order');if(s){const arr=JSON.parse(s);const all=Object.keys(rooms);return [...arr.filter(n=>rooms[n]),...all.filter(n=>!arr.includes(n))];}}catch(e){}
   return Object.keys(rooms);
 }
-
 function buildRoomBar(){
   const bar=document.getElementById('roomBar');bar.innerHTML='';
-  Object.keys(rooms).forEach(name=>{
+  getRoomOrder().forEach(name=>{
     const b=document.createElement('button');b.className='room-chip'+(name===curRoom?' on':'');
-    b.textContent=name;b.onclick=()=>{curRoom=name;buildRoomBar();renderPage();};
-    bar.appendChild(b);
+    b.textContent=name;b.onclick=()=>{curRoom=name;buildRoomBar();renderPage();};bar.appendChild(b);
   });
 }
 
-// ── PAGE SWITCH ──
+// ════════════════════════════════════════
+// PAGE SWITCH
+// ════════════════════════════════════════
 function showPage(page){
   curPage=page;
-  document.getElementById('nav-check').classList.toggle('on',page==='check');
-  document.getElementById('nav-hist').classList.toggle('on',page==='hist');
-  document.getElementById('canvasPage').style.display=page==='check'?'flex':'none';
-  document.getElementById('histPage').style.display=page==='hist'?'flex':'none';
+  ['check','hist'].forEach(p=>{
+    document.getElementById(p+'Page').classList.toggle('hidden',p!==page);
+    document.getElementById('nav-'+p).classList.toggle('on',p===page);
+  });
   renderPage();
 }
-function renderPage(){if(curPage==='check')renderCheck();else renderHist();}
+function renderPage(){
+  if(curPage==='check')renderCheck();
+  else renderHist();
+}
 
-// ── INFO BAR TOGGLE ──
-let infoCollapsed=false;
+// ════════════════════════════════════════
+// INFO BAR TOGGLE
+// ════════════════════════════════════════
 function toggleInfoBar(){
   infoCollapsed=!infoCollapsed;
   document.getElementById('infoBar').classList.toggle('collapsed',infoCollapsed);
-  document.getElementById('toggleArrow').classList.toggle('open',!infoCollapsed);
-  document.getElementById('toggleBarText').textContent=infoCollapsed?'詳細を表示':'詳細を隠す';
+  const arr=document.getElementById('toggleArrow');arr.classList.toggle('open',!infoCollapsed);
+  document.getElementById('toggleLabel').textContent=infoCollapsed?'詳細を表示':'詳細を隠す';
 }
 
-// ── CHECK PAGE ──
+// ════════════════════════════════════════
+// CHECK PAGE
+// ════════════════════════════════════════
 function renderCheck(){
+  syncDateInp();
   const grp=getTodayGrp();
-  const todayStr=today();
   const dow=new Date().getDay();
-
-  // Update info bar
-  if(dow===0){
-    document.getElementById('grpName').textContent='🎌 日曜日';
-    document.getElementById('grpSub').textContent='本日は検査がありません';
+  // Info bar
+  if(dow===0&&selectedDate===today()){
+    document.getElementById('infoGrpName').textContent='🎌 日曜日';
+    document.getElementById('infoGrpSub').textContent='本日は検査がありません';
     document.getElementById('allOkBtn').style.display='none';
   } else if(!grp){
-    document.getElementById('grpName').textContent='グループ未設定';
-    document.getElementById('grpSub').textContent='PCで列グループを設定してください';
+    document.getElementById('infoGrpName').textContent='グループ未設定';
+    document.getElementById('infoGrpSub').textContent='PCで列グループを設定してください';
     document.getElementById('allOkBtn').style.display='none';
   } else {
     const total=grp.deviceIds.length;
-    const done=grp.deviceIds.filter(id=>getStatus(id)).length;
+    const done=grp.deviceIds.filter(id=>getCheckStatus(id)).length;
     const pct=total?Math.round(done/total*100):0;
-    document.getElementById('grpName').textContent='📍 '+grp.name;
-    document.getElementById('grpSub').textContent=`${done}/${total}台完了`;
+    document.getElementById('infoGrpName').textContent='📍 '+grp.name;
+    document.getElementById('infoGrpSub').textContent=done+'/'+total+'台完了';
     document.getElementById('allOkBtn').style.display='block';
-    // Progress ring
-    const circ=106.8;
-    document.getElementById('progressRing').style.strokeDashoffset=circ*(1-pct/100);
+    document.getElementById('progressRing').style.strokeDashoffset=106.8*(1-pct/100);
     document.getElementById('progressPct').textContent=pct+'%';
-    // Toggle bar badges
-    const ok=grp.deviceIds.filter(id=>getStatus(id)==='ok').length;
-    const ng=grp.deviceIds.filter(id=>getStatus(id)==='ng').length;
-    const wa=grp.deviceIds.filter(id=>getStatus(id)==='warn').length;
+    // badges
+    const ok=grp.deviceIds.filter(id=>getCheckStatus(id)==='ok').length;
+    const ng=grp.deviceIds.filter(id=>getCheckStatus(id)==='ng').length;
+    const wa=grp.deviceIds.filter(id=>getCheckStatus(id)==='warn').length;
     const tb=document.getElementById('toggleBadges');tb.innerHTML='';
     if(ok)tb.innerHTML+=`<span class="tbadge ok">✓${ok}</span>`;
     if(ng)tb.innerHTML+=`<span class="tbadge ng">✗${ng}</span>`;
     if(wa)tb.innerHTML+=`<span class="tbadge warn">△${wa}</span>`;
   }
-
-  // Render canvas
   renderCanvas();
+  updateAnomalyBtn();
 }
 
 function renderCanvas(){
-  const cv=document.getElementById('canvas');cv.innerHTML='';
+  const cv=document.getElementById('mCanvas');cv.innerHTML='';
   const devs=rooms[curRoom]||[];
   if(!devs.length){cv.style.width='400px';cv.style.height='300px';return;}
-  let mx=0,my=0;
-  devs.forEach(d=>{mx=Math.max(mx,d.x+d.w+32);my=Math.max(my,d.y+d.h+32);});
+  let mx=0,my=0;devs.forEach(d=>{mx=Math.max(mx,d.x+d.w+32);my=Math.max(my,d.y+d.h+32);});
   cv.style.width=mx+'px';cv.style.height=my+'px';
-
   const grp=getTodayGrp();
   const todayIds=new Set(grp?grp.deviceIds:[]);
-  const todayStr=today();
-
   devs.forEach(d=>{
     const el=document.createElement('div');
-    el.className='dev';
+    el.className='mdev';el.id='mdv_'+d.id;
     el.style.cssText=`left:${d.x}px;top:${d.y}px;width:${d.w}px;height:${d.h}px;background:${d.bgColor||'#0f1f0f'};border-color:${(d.color||'#6ec96e')}44`;
     const lbl=document.createElement('span');
-    lbl.className='dev-label';
-    lbl.style.color=d.color||'#6ec96e';
-    lbl.style.fontSize=(d.fontSize||7)+'px';
-    lbl.style.writingMode=d.vertical?'vertical-rl':'horizontal-tb';
-    lbl.textContent=d.label||'';
-    el.appendChild(lbl);
-
+    lbl.style.cssText=`font-size:${d.fontSize||7}px;color:${d.color||'#6ec96e'};writing-mode:${d.vertical?'vertical-rl':'horizontal-tb'};word-break:break-all;text-align:center;line-height:1.2;padding:1px;pointer-events:none`;
+    lbl.textContent=d.label||'';el.appendChild(lbl);
+    // Status classes
     if(todayIds.has(d.id)){
-      const st=getStatus(d.id);
-      if(st) el.classList.add('st-'+st);
-      else el.classList.add('today');
-      el.onclick=()=>{if(wasPinching)return;openSheet(d.id,d);};
+      const st=getCheckStatus(d.id);
+      el.classList.add(st?'st-'+st:'today');
+    } else {
+      const fst=getFreeEvalStatus(d.id);
+      if(fst)el.classList.add('free-'+fst);
+      else el.classList.add('clickable');
     }
+    el.onclick=()=>openSheet(d.id,d);
     cv.appendChild(el);
   });
 }
 
-// ── BOTTOM SHEET ──
+// ════════════════════════════════════════
+// BOTTOM SHEET
+// ════════════════════════════════════════
 function openSheet(did,dv){
   popDevId=did;
-  const st=getStatus(did);
-  const curNote=checkData[today()]?.[curRoom]?.[getTodayGrp()?.id]?.[did]?.note||'';
+  const grp=getTodayGrp();
+  const isInGrp=grp&&grp.deviceIds.includes(did);
+  const curSt=isInGrp?getCheckStatus(did):getFreeEvalStatus(did);
+  const curNote=isInGrp
+    ?checkData[selectedDate]?.[curRoom]?.[grp?.id]?.[did]?.note||''
+    :freeEvalData[selectedDate]?.[curRoom]?.[did]?.note||'';
   const sheet=document.getElementById('sheet');
   sheet.innerHTML=`
     <div class="sheet-handle"></div>
+    ${!isInGrp?'<div class="sheet-tag">自由評価</div><br>':''}
     <div class="sheet-title">${esc(dv.label||dv.id)}</div>
-    <div class="sheet-sub">${dv.pc&&dv.monitor?`PC:${dv.pc} / モニター:${dv.monitor}`:''}</div>
+    <div class="sheet-sub">${dv.pc&&dv.monitor?'PC:'+dv.pc+' / モニター:'+dv.monitor:''}</div>
     <div class="sheet-btns">
-      <button class="sheet-btn s-ok" onclick="doCheck('ok')">✓ 正常</button>
-      <button class="sheet-btn s-warn" onclick="doCheck('warn')">△ 要注意</button>
-      <button class="sheet-btn s-ng" onclick="doCheck('ng')">✗ 異常あり</button>
-      ${st?`<button class="sheet-btn s-reset" onclick="doCheck(null)">リセット</button>`:''}
+      <button class="sheet-btn s-ok"  onclick="doCheck('ok',${isInGrp})">✓ 正常</button>
+      <button class="sheet-btn s-warn" onclick="doCheck('warn',${isInGrp})">△ 要注意</button>
+      <button class="sheet-btn s-ng"  onclick="doCheck('ng',${isInGrp})">✗ 異常あり</button>
+      ${curSt?`<button class="sheet-btn s-reset" onclick="doCheck(null,${isInGrp})">リセット</button>`:''}
     </div>
-    <textarea class="sheet-note" id="sheetNote" rows="3" placeholder="メモ（任意）">${esc(curNote)}</textarea>
-  `;
+    <textarea class="sheet-note" id="sheetNote" rows="3" placeholder="メモ（任意）">${esc(curNote)}</textarea>`;
   document.getElementById('sheetBg').classList.add('open');
 }
-function closeSheet(e){if(e.target===document.getElementById('sheetBg'))document.getElementById('sheetBg').classList.remove('open');}
-function doCheck(status){
+function closeSheet(){document.getElementById('sheetBg').classList.remove('open');}
+function doCheck(status,isInGrp){
   if(!popDevId)return;
   const note=document.getElementById('sheetNote')?.value||'';
-  const todayStr=today();const grp=getTodayGrp();if(!grp)return;
-  if(!checkData[todayStr])checkData[todayStr]={};
-  if(!checkData[todayStr][curRoom])checkData[todayStr][curRoom]={};
-  if(!checkData[todayStr][curRoom][grp.id])checkData[todayStr][curRoom][grp.id]={};
-  if(status===null)delete checkData[todayStr][curRoom][grp.id][popDevId];
-  else checkData[todayStr][curRoom][grp.id][popDevId]={status,note,resolved:false};
-  document.getElementById('sheetBg').classList.remove('open');
-  saveChecks();renderCheck();
+  if(isInGrp){setCheckStatus(popDevId,status,note);saveChecks();}
+  else{setFreeEvalStatus(popDevId,status,note);saveFreeEval();}
+  closeSheet();renderCheck();
+  if(document.getElementById('anomalyModal').classList.contains('open'))openAnomalyModal();
   toast(status==='ok'?'✓ 正常':status==='ng'?'✗ 異常を記録':status==='warn'?'△ 要注意を記録':'リセットしました');
 }
 
 function markAllOk(){
-  const todayStr=today();const grp=getTodayGrp();
-  if(!grp||!grp.deviceIds.length)return;
+  const grp=getTodayGrp();if(!grp||!grp.deviceIds.length)return;
   if(!confirm('全'+grp.deviceIds.length+'台を「正常」に記録しますか？'))return;
-  if(!checkData[todayStr])checkData[todayStr]={};
-  if(!checkData[todayStr][curRoom])checkData[todayStr][curRoom]={};
-  if(!checkData[todayStr][curRoom][grp.id])checkData[todayStr][curRoom][grp.id]={};
-  grp.deviceIds.forEach(id=>{checkData[todayStr][curRoom][grp.id][id]={status:'ok',note:'',resolved:false};});
+  if(!checkData[selectedDate])checkData[selectedDate]={};
+  if(!checkData[selectedDate][curRoom])checkData[selectedDate][curRoom]={};
+  if(!checkData[selectedDate][curRoom][grp.id])checkData[selectedDate][curRoom][grp.id]={};
+  grp.deviceIds.forEach(id=>{checkData[selectedDate][curRoom][grp.id][id]={status:'ok',note:'',resolved:false};});
   saveChecks();renderCheck();toast('✓ 全台を正常に記録しました');
 }
 
-// ── HIST PAGE ──
+// ════════════════════════════════════════
+// HIST PAGE
+// ════════════════════════════════════════
 function renderHist(){
-  const page=document.getElementById('histPage');page.innerHTML='';
-  const dates=Object.keys(checkData).sort().reverse();
+  const wrap=document.getElementById('histWrap');wrap.innerHTML='';
+  const dates=[...new Set([...Object.keys(checkData),...Object.keys(freeEvalData)])].sort().reverse();
   let any=false;
   dates.forEach(dateStr=>{
-    const rd=checkData[dateStr];if(!rd)return;
-    Object.entries(rd).forEach(([room,gd])=>{
+    // Official check
+    const rd=checkData[dateStr];
+    if(rd)Object.entries(rd).forEach(([room,gd])=>{
       if(room!==curRoom)return;
       Object.entries(gd).forEach(([grpId,devData])=>{
-        any=true;
         const grp=(groups[room]||[]).find(g=>g.id===grpId);
         const vals=Object.values(devData);
         const ok=vals.filter(v=>v.status==='ok').length;
         const ng=vals.filter(v=>v.status==='ng').length;
         const wa=vals.filter(v=>v.status==='warn').length;
-        const card=document.createElement('div');card.className='hist-card';
-        // Header
-        const hdr=document.createElement('div');hdr.className='hist-card-header';
-        hdr.innerHTML=`<span class="hist-card-date">${fmtDate(dateStr)}</span>
-          <span class="hist-card-grp">${grp?esc(grp.name):grpId}</span>
-          <div class="hist-badges">
-            ${ok?`<span class="hbadge ok">✓${ok}</span>`:''}
-            ${ng?`<span class="hbadge ng">✗${ng}</span>`:''}
-            ${wa?`<span class="hbadge warn">△${wa}</span>`:''}
-          </div>`;
-        card.appendChild(hdr);
-        // Problem devices
+        if(!ok&&!ng&&!wa)return;
+        any=true;
+        const card=mkHistCard(dateStr,grp?grp.name:grpId,ok,ng,wa);
         Object.entries(devData).filter(([,v])=>v.status==='ng'||v.status==='warn').forEach(([did,{status,note,resolved}])=>{
           const dv=(rooms[room]||[]).find(d=>d.id===did);
-          const row=document.createElement('div');row.className='hist-dev';
-          row.innerHTML=`<span class="hist-dev-lbl">${esc(dv?dv.label:did)}</span>
-            ${note?`<span class="hist-dev-note">${esc(note)}</span>`:''}
-            <span class="hist-dev-st ${status}">${status==='ng'?'✗ 異常':'△ 注意'}</span>`;
-          const rb=document.createElement('button');
-          rb.className='res-btn'+(resolved?' done':'');
-          rb.textContent=resolved?'🔧 解決済み':'解決済み';
-          rb.onclick=()=>{
-            checkData[dateStr][room][grpId][did].resolved=!resolved;
-            saveChecks();renderHist();
-            toast(resolved?'取り消しました':'🔧 解決済みにしました');
-          };
-          row.appendChild(rb);card.appendChild(row);
+          card.appendChild(mkHistDev(did,dv?dv.label:did,status,note,resolved,
+            ()=>{checkData[dateStr][room][grpId][did].resolved=!resolved;saveChecks();renderHist();if(document.getElementById('anomalyModal').classList.contains('open'))openAnomalyModal();toast(resolved?'取り消しました':'🔧 解決済みにしました');},
+            room,did));
         });
-        page.appendChild(card);
+        wrap.appendChild(card);
+      });
+    });
+    // Free eval
+    const fd=(freeEvalData[dateStr]||{})[curRoom];
+    if(fd){
+      const entries=Object.entries(fd);
+      const ok=entries.filter(([,v])=>v.status==='ok').length;
+      const ng=entries.filter(([,v])=>v.status==='ng').length;
+      const wa=entries.filter(([,v])=>v.status==='warn').length;
+      if(ok||ng||wa){
+        any=true;
+        const card=mkHistCard(dateStr,'自由評価',ok,ng,wa);
+        entries.filter(([,v])=>v.status==='ng'||v.status==='warn').forEach(([did,{status,note,resolved}])=>{
+          const dv=(rooms[curRoom]||[]).find(d=>d.id===did);
+          card.appendChild(mkHistDev(did,dv?dv.label:did,status,note,resolved,
+            ()=>{freeEvalData[dateStr][curRoom][did].resolved=!resolved;saveFreeEval();renderHist();if(document.getElementById('anomalyModal').classList.contains('open'))openAnomalyModal();toast(resolved?'取り消しました':'🔧 解決済みにしました');},
+            curRoom,did));
+        });
+        wrap.appendChild(card);
+      }
+    }
+  });
+  if(!any){const e=document.createElement('div');e.style.cssText='text-align:center;color:var(--t3);padding:40px;font-size:12px';e.textContent='検査履歴がありません';wrap.appendChild(e);}
+}
+
+function mkHistCard(dateStr,grpName,ok,ng,wa){
+  const card=document.createElement('div');card.className='hist-card';
+  const hdr=document.createElement('div');hdr.className='hist-card-hdr';
+  hdr.innerHTML=`<span class="hist-card-date">${fmtDate(dateStr)}</span>
+    <span class="hist-card-grp">${esc(grpName)}</span>
+    <div class="hist-badges">
+      ${ok?`<span class="hbadge ok">✓${ok}</span>`:''}
+      ${ng?`<span class="hbadge ng">✗${ng}</span>`:''}
+      ${wa?`<span class="hbadge warn">△${wa}</span>`:''}
+    </div>`;
+  card.appendChild(hdr);return card;
+}
+function mkHistDev(did,lbl,status,note,resolved,onToggle,room,devId){
+  const row=document.createElement('div');row.className='hist-dev';
+  row.innerHTML=`<span style="color:${status==='ng'?'var(--err)':'var(--warn)'};font-weight:500">${status==='ng'?'✗':'△'}</span>
+    <span class="hist-dev-lbl">${esc(lbl)}</span>
+    ${note?`<span style="font-size:10px;color:var(--t3);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(note)}</span>`:''}
+    <span style="font-size:9px;color:var(--t3)">↗</span>`;
+  const rb=document.createElement('button');rb.className='res-btn'+(resolved?' done':'');
+  rb.textContent=resolved?'🔧 解決済み':'解決済み';
+  rb.onclick=(e)=>{e.stopPropagation();onToggle();};
+  row.appendChild(rb);
+  row.onclick=(e)=>{if(e.target===rb)return;jumpToDevice(room,devId);};
+  return row;
+}
+
+// ════════════════════════════════════════
+// ANOMALY MODAL
+// ════════════════════════════════════════
+function getUnresolvedAnomalies(){
+  const result=[];
+  Object.entries(checkData).forEach(([dateStr,rd])=>{
+    Object.entries(rd).forEach(([room,gd])=>{
+      Object.entries(gd).forEach(([grpId,devData])=>{
+        Object.entries(devData).forEach(([did,{status,note,resolved}])=>{
+          if((status==='ng'||status==='warn')&&!resolved){
+            const dv=(rooms[room]||[]).find(d=>d.id===did);
+            const grp=(groups[room]||[]).find(g=>g.id===grpId);
+            result.push({dateStr,room,grpId,grpName:grp?grp.name:grpId,did,label:dv?dv.label:did,status,note:note||'',source:'check'});
+          }
+        });
       });
     });
   });
-  if(!any){const e=document.createElement('div');e.style.cssText='text-align:center;color:var(--t3);padding:40px;font-size:12px';e.textContent='検査履歴がありません';page.appendChild(e);}
+  Object.entries(freeEvalData||{}).forEach(([dateStr,rd])=>{
+    Object.entries(rd).forEach(([room,devData])=>{
+      Object.entries(devData).forEach(([did,{status,note,resolved}])=>{
+        if((status==='ng'||status==='warn')&&!resolved){
+          const dv=(rooms[room]||[]).find(d=>d.id===did);
+          result.push({dateStr,room,grpId:null,grpName:'自由評価',did,label:dv?dv.label:did,status,note:note||'',source:'free'});
+        }
+      });
+    });
+  });
+  return result.sort((a,b)=>b.dateStr.localeCompare(a.dateStr));
 }
 
-// ── UTILS ──
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-let tT;function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),2000);}
+function updateAnomalyBtn(){
+  const count=getUnresolvedAnomalies().length;
+  const btn=document.getElementById('anomalyTopBtn');
+  if(!btn)return;
+  btn.textContent=count?`⚠️ ${count}`:'⚠️';
+  btn.classList.toggle('has-anomaly',count>0);
+}
 
+function openAnomalyModal(){
+  const items=getUnresolvedAnomalies();
+  const body=document.getElementById('anomalyBody');body.innerHTML='';
+  if(!items.length){
+    body.innerHTML='<div style="text-align:center;color:var(--acc2);font-size:13px;padding:24px;line-height:2">✓ 未解決の異常はありません</div>';
+  } else {
+    const byRoom={};items.forEach(it=>{if(!byRoom[it.room])byRoom[it.room]=[];byRoom[it.room].push(it);});
+    Object.entries(byRoom).forEach(([room,its])=>{
+      const rt=document.createElement('div');rt.className='anomaly-room-title';rt.textContent=room;body.appendChild(rt);
+      its.forEach(it=>{
+        const row=document.createElement('div');row.className='anomaly-item '+it.status;
+        row.onclick=(e)=>{if(e.target.tagName==='BUTTON')return;closeAnomalyModal();jumpToDevice(it.room,it.did);};
+        row.innerHTML=`<div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">
+            <span class="anomaly-dev">${esc(it.label)}</span>
+            <span class="anomaly-st ${it.status}">${it.status==='ng'?'✗ 異常':'△ 要注意'}</span>
+            <span style="font-size:9px;color:var(--t3)">${fmtDate(it.dateStr)} · ${esc(it.grpName)} ↗</span>
+          </div>
+          ${it.note?`<div style="font-size:10px;color:var(--t2)">📝 ${esc(it.note)}</div>`:''}
+        </div>`;
+        const rb=document.createElement('button');rb.style.cssText='padding:4px 10px;background:transparent;border:1px solid var(--acc2);border-radius:3px;color:var(--acc2);font-family:"DM Mono",monospace;font-size:10px;cursor:pointer;flex-shrink:0;margin-left:6px';
+        rb.textContent='解決済み';
+        rb.onclick=()=>{
+          if(it.source==='free'){if(freeEvalData[it.dateStr]?.[it.room]?.[it.did])freeEvalData[it.dateStr][it.room][it.did].resolved=true;saveFreeEval();}
+          else{if(checkData[it.dateStr]?.[it.room]?.[it.grpId]?.[it.did])checkData[it.dateStr][it.room][it.grpId][it.did].resolved=true;saveChecks();}
+          openAnomalyModal();renderHist();toast('🔧 解決済みにしました');
+        };
+        row.appendChild(rb);body.appendChild(row);
+      });
+    });
+  }
+  document.getElementById('anomalyModal').classList.add('open');
+}
+function closeAnomalyModal(){document.getElementById('anomalyModal').classList.remove('open');}
 
-// ── PINCH ZOOM ──────────────────────────
-let cvScale=1,cvPanX=0,cvPanY=0;
-let pTouches=null,pDist=0,pMidX=0,pMidY=0;
-let sTouchX=0,sTouchY=0,sPanX=0,sPanY=0;
-let touching=false,wasPinching=false;
+// ════════════════════════════════════════
+// JUMP TO DEVICE
+// ════════════════════════════════════════
+function jumpToDevice(room,did){
+  closeAnomalyModal();
+  curRoom=room;showPage('check');buildRoomBar();
+  setTimeout(()=>{
+    const el=document.getElementById('mdv_'+did);if(!el)return;
+    const wr=document.getElementById('cWrap');
+    const r=el.getBoundingClientRect(),wr2=wr.getBoundingClientRect();
+    wr.scrollTo({left:wr.scrollLeft+(r.left-wr2.left)-wr2.width/2+r.width/2,top:wr.scrollTop+(r.top-wr2.top)-wr2.height/2+r.height/2,behavior:'smooth'});
+    setTimeout(()=>{el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2600);},300);
+  },150);
+}
+
+// ════════════════════════════════════════
+// PINCH ZOOM
+// ════════════════════════════════════════
+let cvScale=1,cvPanX=0,cvPanY=0,pDist=0,pMidX=0,pMidY=0;
+let sTouchX=0,sTouchY=0,sPanX=0,sPanY=0,wasPinching=false;
 
 function applyTransform(){
   const inner=document.getElementById('canvasInner');
   if(inner)inner.style.transform=`translate(${cvPanX}px,${cvPanY}px) scale(${cvScale})`;
 }
+function resetZoom(){cvScale=1;cvPanX=0;cvPanY=0;applyTransform();}
 
 function initPinchZoom(){
-  const wrap=document.getElementById('cWrap');
-  if(!wrap)return;
-
+  const wrap=document.getElementById('cWrap');if(!wrap)return;
   wrap.addEventListener('touchstart',e=>{
-    touching=true;
     if(e.touches.length===2){
       wasPinching=true;
       const a=e.touches[0],b=e.touches[1];
       pDist=Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);
-      pMidX=(a.clientX+b.clientX)/2;
-      pMidY=(a.clientY+b.clientY)/2;
+      pMidX=(a.clientX+b.clientX)/2;pMidY=(a.clientY+b.clientY)/2;
       e.preventDefault();
     } else if(e.touches.length===1){
-      sTouchX=e.touches[0].clientX;
-      sTouchY=e.touches[0].clientY;
-      sPanX=cvPanX;sPanY=cvPanY;
+      sTouchX=e.touches[0].clientX;sTouchY=e.touches[0].clientY;sPanX=cvPanX;sPanY=cvPanY;
       if(cvScale>1)e.preventDefault();
     }
   },{passive:false});
-
   wrap.addEventListener('touchmove',e=>{
     if(e.touches.length===2){
       wasPinching=true;
       const a=e.touches[0],b=e.touches[1];
       const dist=Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);
-      const midX=(a.clientX+b.clientX)/2;
-      const midY=(a.clientY+b.clientY)/2;
+      const midX=(a.clientX+b.clientX)/2,midY=(a.clientY+b.clientY)/2;
       const rect=wrap.getBoundingClientRect();
-      const ratio=dist/pDist;
-      const ns=Math.min(3,Math.max(0.25,cvScale*ratio));
+      const ns=Math.min(3,Math.max(0.25,cvScale*(dist/pDist)));
       const ox=midX-rect.left,oy=midY-rect.top;
       cvPanX=ox-(ox-cvPanX)*(ns/cvScale)+(midX-pMidX);
       cvPanY=oy-(oy-cvPanY)*(ns/cvScale)+(midY-pMidY);
       cvScale=ns;pDist=dist;pMidX=midX;pMidY=midY;
-      applyTransform();
-      e.preventDefault();
+      applyTransform();e.preventDefault();
     } else if(e.touches.length===1&&cvScale>1){
       cvPanX=sPanX+(e.touches[0].clientX-sTouchX);
       cvPanY=sPanY+(e.touches[0].clientY-sTouchY);
-      applyTransform();
-      e.preventDefault();
+      applyTransform();e.preventDefault();
     }
   },{passive:false});
-
   wrap.addEventListener('touchend',e=>{
-    if(e.touches.length===0){
-      setTimeout(()=>{wasPinching=false;touching=false;},50);
-    }
+    if(e.touches.length===0)setTimeout(()=>{wasPinching=false;},50);
   });
 }
 
-function resetZoom(){cvScale=1;cvPanX=0;cvPanY=0;applyTransform();}
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let tT;function toast(msg){const e=document.getElementById('mToast');e.textContent=msg;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),2200);}
 
-
-// ── INIT ──
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
 async function init(){
   loadTheme().catch(()=>{});
-  if(sessionStorage.getItem('rc_auth')==='1'){document.getElementById('loginScreen').classList.add('hidden');}
+  if(sessionStorage.getItem('rc_auth')==='1')document.getElementById('loginScreen').classList.add('hidden');
   await loadAll();
+  loadFreeEval();
+  selectedDate=today();
+  syncDateInp();
   const names=getRoomOrder();curRoom=names[0]||'';
-  buildRoomBar();showPage('check');initPinchZoom();
-  // Auto-refresh data every 30 seconds
-  setInterval(async()=>{
-    await loadAll();
-    buildRoomBar();renderPage();
-  }, 30000);
-  // Refresh when page becomes visible again
-  document.addEventListener('visibilitychange',async()=>{
-    if(!document.hidden){
-      await loadAll();
-      buildRoomBar();renderPage();
-    }
-  });
+  buildRoomBar();
+  showPage('check');
+  initPinchZoom();
+  updateAnomalyBtn();
+  // Auto anomaly popup on login
+  setTimeout(()=>{if(getUnresolvedAnomalies().length>0)openAnomalyModal();},800);
+  // Auto refresh
+  setInterval(async()=>{await loadAll();loadFreeEval();buildRoomBar();renderPage();updateAnomalyBtn();},30000);
+  document.addEventListener('visibilitychange',async()=>{if(!document.hidden){await loadAll();loadFreeEval();buildRoomBar();renderPage();updateAnomalyBtn();}});
 }
 init();
 </script>
