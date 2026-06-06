@@ -656,6 +656,7 @@ async function saveAll(immediate=false){
   localStorage.setItem('rc_rooms',JSON.stringify(rooms));
   localStorage.setItem('rc_groups',JSON.stringify(groups));
   localStorage.setItem('rc_checks',JSON.stringify(checkData));
+  localStorage.setItem('rc_free_eval',JSON.stringify(freeEvalData||{}));
   
   if(immediate){await pushToServer();}
   else{
@@ -672,7 +673,7 @@ async function pushToServer(){
     const r=await fetch('/api/data',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({rooms,groups,checkData,roomOrder:roomOrder||Object.keys(rooms)})
+      body:JSON.stringify({rooms,groups,checkData,freeEvalData:freeEvalData||{},roomOrder:roomOrder||Object.keys(rooms)})
     });
     if(!r.ok)throw new Error('HTTP '+r.status);
     setSyncStatus('saved');
@@ -694,6 +695,11 @@ async function loadAll(){
       // Always trust server
       if(true){
         rooms=d.rooms||{};groups=d.groups||{};checkData=d.checkData||{};
+        // Restore freeEvalData from server
+        if(d.freeEvalData){
+          freeEvalData=d.freeEvalData;
+          localStorage.setItem('rc_free_eval',JSON.stringify(freeEvalData));
+        }
         // Restore room order from server
         if(d.roomOrder&&Array.isArray(d.roomOrder)){
           localStorage.setItem('rc_room_order',JSON.stringify(d.roomOrder));
@@ -2709,6 +2715,7 @@ function loadFreeEval(){
 }
 function saveFreeEval(){
   localStorage.setItem(FREE_EVAL_KEY,JSON.stringify(freeEvalData));
+  saveAll(); // sync to server
 }
 function getFreeEvalStatus(did){
   const dateStr=selectedDate||today();
