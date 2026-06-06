@@ -334,6 +334,47 @@ select.finp{cursor:pointer}
   .sidebar-wrap .sidebar-toggle{display:flex}
   .sidebar{transition:width .22s}
 }
+
+/* ── ANOMALY POPUP ── */
+#anomalyModal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:3000;opacity:0;pointer-events:none;transition:opacity .2s}
+#anomalyModal.open{opacity:1;pointer-events:all}
+.anomaly-box{background:var(--surf);border:1px solid var(--err);border-radius:10px;width:480px;max-width:calc(100vw - 32px);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(255,85,85,.2)}
+.anomaly-header{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.anomaly-title{font-family:'Syne',sans-serif;font-size:14px;color:var(--err);flex:1}
+.anomaly-close{background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;border-radius:3px}
+.anomaly-close:hover{color:var(--t1)}
+.anomaly-body{overflow-y:auto;padding:12px;flex:1}
+.anomaly-room-group{margin-bottom:12px}
+.anomaly-room-title{font-size:10px;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;margin-bottom:6px;padding:0 4px}
+.anomaly-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surf2);border-radius:5px;margin-bottom:4px;border:1px solid var(--b1)}
+.anomaly-item.ng{border-color:var(--hi-ng-bd);background:var(--hi-ng)}
+.anomaly-item.warn{border-color:var(--hi-warn-bd);background:var(--hi-warn)}
+.anomaly-dev{font-size:12px;font-weight:500;flex:1}
+.anomaly-date{font-size:10px;color:var(--t2)}
+.anomaly-st{font-size:10px;padding:2px 8px;border-radius:3px;border:1px solid;flex-shrink:0}
+.anomaly-st.ng{background:var(--hi-ng);border-color:var(--hi-ng-bd);color:var(--err)}
+.anomaly-st.warn{background:var(--hi-warn);border-color:var(--hi-warn-bd);color:var(--warn)}
+.anomaly-note{font-size:10px;color:var(--t2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anomaly-empty{text-align:center;color:var(--acc2);font-size:13px;padding:24px;line-height:2}
+.anomaly-footer{padding:12px 18px;border-top:1px solid var(--b1);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+
+/* Free eval style */
+.dev.free-eval-ng{outline:2px dashed var(--hi-ng-bd)!important}
+.dev.free-eval-ng::after{content:'';position:absolute;inset:0;background:var(--hi-ng);pointer-events:none;border-radius:2px}
+.dev.free-eval-warn{outline:2px dashed var(--hi-warn-bd)!important}
+.dev.free-eval-warn::after{content:'';position:absolute;inset:0;background:var(--hi-warn);pointer-events:none;border-radius:2px}
+.dev.free-eval-ok{outline:2px dashed var(--hi-ok-bd)!important}
+.dev.free-eval-ok::after{content:'';position:absolute;inset:0;background:var(--hi-ok);pointer-events:none;border-radius:2px}
+
+/* ── DATE PICKER ── */
+.date-nav{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.date-nav-btn{background:transparent;border:1px solid var(--b2);border-radius:3px;color:var(--t2);cursor:pointer;font-size:14px;padding:2px 8px;line-height:1;transition:.12s}
+.date-nav-btn:hover{border-color:var(--b3);color:var(--t1)}
+.date-input{background:var(--surf2);border:1px solid var(--b1);border-radius:3px;color:var(--t1);font-family:'DM Mono',monospace;font-size:11px;padding:4px 6px;outline:none;flex:1;cursor:pointer}
+.date-input:focus{border-color:var(--acc)}
+.date-today-btn{background:transparent;border:1px solid var(--acc);border-radius:3px;color:var(--acc);cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;padding:3px 7px;white-space:nowrap;transition:.12s}
+.date-today-btn:hover{background:rgba(200,240,0,.1)}
+.date-is-today{font-size:9px;color:var(--acc2);text-align:center;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -374,7 +415,7 @@ select.finp{cursor:pointer}
 <div class="main">
   <div class="sidebar-wrap"><div class="sidebar" id="sidebar"></div><button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="サイドバーを開閉"><span id="toggleArrow">◀</span></button></div>
   <div class="canvas-wrap" id="cWrap"
-    ondragover="cvDragOver(event)" ondrop="cvDrop(event)" ondragleave="cvDragLeave()">
+    ondragover="cvDragOver(event)" ondrop="cvDrop(event)" ondragleave="cvDragLeave(event)">
     <div id="canvas" onclick="cvClick(event)"></div>
     <div class="drop-ghost" id="ghost" style="display:none"></div>
     <div id="selBox"></div>
@@ -466,6 +507,20 @@ select.finp{cursor:pointer}
 </div>
 
 
+<!-- ── ANOMALY MODAL ── -->
+<div id="anomalyModal">
+  <div class="anomaly-box">
+    <div class="anomaly-header">
+      <div class="anomaly-title">⚠️ 未解決の異常・要注意</div>
+      <button class="anomaly-close" onclick="closeAnomalyModal()">✕</button>
+    </div>
+    <div class="anomaly-body" id="anomalyBody"></div>
+    <div class="anomaly-footer">
+      <button class="hbtn hbtn-g" onclick="closeAnomalyModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div id="checkPopup" class="check-popup" style="display:none"></div>
 
@@ -532,7 +587,7 @@ let rooms={},groups={},checkData={};
 // groups[roomName] = [{id,name,color,deviceIds:[]}]
 // checkData[dateStr][roomName][grpId] = {deviceId: {status:'ok'|'ng'|'warn'|null, note:''}}
 
-let curRoom='B23', curMode='check';
+let curRoom='B23', curMode='check', selectedDate='';
 let selId=null, palType=null;
 let dragId=null,dragOX=0,dragOY=0;
 let resizing=false,resId=null,rsX=0,rsY=0,rsW=0,rsH=0;
@@ -1008,6 +1063,11 @@ function renderAll(){renderSidebar();renderCanvas();renderHactions();updateStatu
 function renderHactions(){
   const el=document.getElementById('hactions');el.innerHTML='';
   const sa=document.getElementById('subActions');if(sa)sa.innerHTML='';
+  // Always show anomaly button
+  const anomalyCount=getUnresolvedAnomalies().length;
+  const ab=btn(el,'hbtn hbtn-g',anomalyCount?`⚠️ ${anomalyCount}`:'⚠️',openAnomalyModal);
+  ab.title='未解決の異常';ab.id='anomalyTopBtn';
+  if(anomalyCount)ab.style.cssText+='border-color:var(--err);color:var(--err)';
 
   if(curMode==='check'){
     btn(el,'hbtn hbtn-g','記録を保存',saveCheckData);
@@ -1016,6 +1076,8 @@ function renderHactions(){
     btn(el,'hbtn hbtn-r','履歴をクリア',clearHist);
     btn(el,'hbtn hbtn-g','🎨',openTheme);
   } else if(curMode==='edit'&&sa){
+    const ub=btn(sa,'hbtn hbtn-g','↩',undo);ub.id='undoBtn';ub.title='元に戻す (Ctrl+Z)';ub.style.opacity='0.35';
+    const rb=btn(sa,'hbtn hbtn-g','↪',redo);rb.id='redoBtn';rb.title='やり直す (Ctrl+Y)';rb.style.opacity='0.35';
     btn(sa,'hbtn hbtn-g','＋ 教室',()=>{document.getElementById('roomModal').classList.add('open');});
     btn(sa,'hbtn hbtn-g','＋ 追加',()=>openAddModal());
     btn(sa,'hbtn hbtn-g','Export',exportJSON);
@@ -1167,13 +1229,40 @@ function getDayForGrp(idx){
 }
 
 // ─── CHECK sidebar ───────────────────────────
+function shiftDate(dateStr, delta){
+  // Parse date parts directly to avoid timezone issues
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  dt.setDate(dt.getDate()+delta);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
 function renderSidebarCheck(sb){
-  const now=new Date();
+  if(!selectedDate)selectedDate=today();
   const todayStr=today();
+  const isToday=selectedDate===todayStr;
+  const selD=new Date(selectedDate+'T00:00:00');
   const sec=mksec(sb,'');
-  const cd=document.createElement('div');cd.className='check-date';cd.textContent=fmtDate(todayStr);sec.appendChild(cd);
+
+  // Date navigation
+  const nav=document.createElement('div');nav.className='date-nav';
+  const prevBtn=document.createElement('button');prevBtn.className='date-nav-btn';prevBtn.textContent='‹';
+  prevBtn.onclick=()=>{selectedDate=shiftDate(selectedDate,-1);renderAll();};
+  const dateInp=document.createElement('input');dateInp.type='date';dateInp.className='date-input';dateInp.value=selectedDate;
+  dateInp.onchange=()=>{if(dateInp.value&&dateInp.value!==selectedDate){selectedDate=dateInp.value;renderAll();}};
+  const nextBtn=document.createElement('button');nextBtn.className='date-nav-btn';nextBtn.textContent='›';
+  nextBtn.onclick=()=>{selectedDate=shiftDate(selectedDate,1);renderAll();};
+  const todayBtn=document.createElement('button');todayBtn.className='date-today-btn';todayBtn.textContent='今日';
+  todayBtn.onclick=()=>{selectedDate=todayStr;renderAll();};
+  nav.appendChild(prevBtn);nav.appendChild(dateInp);nav.appendChild(nextBtn);nav.appendChild(todayBtn);
+  sec.appendChild(nav);
+
+  if(!isToday){
+    const lbl=document.createElement('div');lbl.className='date-is-today';
+    lbl.textContent=`${fmtDate(selectedDate)} の記録を表示中`;sec.appendChild(lbl);
+  }
+
   const wd=['日','月','火','水','木','金','土'];
-  const dd=document.createElement('div');dd.className='check-day';dd.textContent=`${wd[now.getDay()]}曜日 · ${curRoom}`;sec.appendChild(dd);
+  const dd=document.createElement('div');dd.className='check-day';dd.textContent=`${wd[selD.getDay()]}曜日 · ${curRoom}`;sec.appendChild(dd);
 
   const grp=getTodayGrp();const grps=getGrps();
   if(!grps.length){
@@ -1212,7 +1301,7 @@ function renderSidebarCheck(sb){
     const list=document.createElement('div');list.className='dev-check-list';
     grp.deviceIds.forEach(did=>{
       const dv=rooms[curRoom]?.find(d=>d.id===did);if(!dv)return;
-      const st=getCheckStatus(todayStr,did);
+      const st=getCheckStatus(selectedDate,did);
       const it=document.createElement('div');it.className=`dcl-item${st?' '+st:''}`;
       it.innerHTML=`<div class="dcl-label">${esc(dv.label||dv.id)}</div><div class="dcl-status ${st||'none'}">${st==='ok'?'✓ 正常':st==='ng'?'✗ 異常':st==='warn'?'△ 注意':'未確認'}</div>`;
       it.onclick=()=>{scrollToDevice(did);openCheckPopupForDev(did);};
@@ -1222,7 +1311,7 @@ function renderSidebarCheck(sb){
 
     // Progress
     const total=grp.deviceIds.length;
-    const done=grp.deviceIds.filter(id=>getCheckStatus(todayStr,id)).length;
+    const done=grp.deviceIds.filter(id=>getCheckStatus(selectedDate,id)).length;
     const pct=Math.round(done/total*100);
     const sec3=document.createElement('div');sec3.className='sb-sec';
     sec3.innerHTML=`<div class="sb-title">進捗</div>
@@ -1237,15 +1326,24 @@ function renderSidebarCheck(sb){
 // ─── HIST sidebar ───────────────────────────
 function renderSidebarHist(sb){
   const sec=mksec(sb,'検査履歴');
-  const allDates=Object.keys(checkData).sort().reverse();
+
+  // Merge checkData + freeEvalData dates
+  const allDates=[...new Set([
+    ...Object.keys(checkData),
+    ...Object.keys(freeEvalData||{})
+  ])].sort().reverse();
+
   if(!allDates.length){
     const e=document.createElement('div');e.style.cssText='font-size:11px;color:var(--t3);text-align:center;padding:12px 0';e.textContent='記録なし';sec.appendChild(e);return;
   }
+
   allDates.forEach(dateStr=>{
-    const roomData=checkData[dateStr];if(!roomData)return;
-    Object.entries(roomData).forEach(([room,grpData])=>{
-      if(room!==curRoom)return;
-      Object.entries(grpData).forEach(([grpId,devData])=>{
+    // ── Official check records ──
+    const roomData=checkData[dateStr];
+    if(roomData){
+      Object.entries(roomData).forEach(([room,grpData])=>{
+        if(room!==curRoom)return;
+        Object.entries(grpData).forEach(([grpId,devData])=>{
         const grp=(groups[room]||[]).find(g=>g.id===grpId);
         const vals=Object.values(devData);
         const ok=vals.filter(v=>v.status==='ok').length;
@@ -1294,8 +1392,66 @@ function renderSidebarHist(sb){
           });
         }
         sec.appendChild(row);
+        });
       });
-    });
+    }
+
+    // ── Free eval records ──
+    const freeRoomData=(freeEvalData||{})[dateStr];
+    if(freeRoomData){
+      const devData=freeRoomData[curRoom];
+      if(devData){
+        const freeEntries=Object.entries(devData);
+        if(freeEntries.length){
+          const ok=freeEntries.filter(([,v])=>v.status==='ok').length;
+          const ng=freeEntries.filter(([,v])=>v.status==='ng').length;
+          const wa=freeEntries.filter(([,v])=>v.status==='warn').length;
+          const resolved=freeEntries.filter(([,v])=>(v.status==='ng'||v.status==='warn')&&v.resolved).length;
+          if(ok||ng||wa){
+            const row=document.createElement('div');row.className='hist-row';
+            row.style.cssText='flex-direction:column;align-items:stretch;gap:5px;padding:8px 10px';
+            const rowTop=document.createElement('div');rowTop.style.cssText='display:flex;align-items:center;gap:7px';
+            rowTop.innerHTML=`<span class="hist-date">${fmtDate(dateStr)}</span>
+              <span class="hist-grp" style="color:var(--t3)">自由評価</span>
+              <span class="hist-badges">
+                ${ok?`<span class="hbadge ok">✓${ok}</span>`:''}
+                ${ng?`<span class="hbadge ng">✗${ng}</span>`:''}
+                ${wa?`<span class="hbadge warn">△${wa}</span>`:''}
+                ${resolved?`<span class="hbadge" style="background:rgba(100,100,100,.2);color:var(--t2)">🔧${resolved}</span>`:''}
+              </span>`;
+            row.appendChild(rowTop);
+            // Problem devices
+            freeEntries.filter(([,v])=>v.status==='ng'||v.status==='warn').forEach(([did,{status,note,resolved:res}])=>{
+              const dv=(rooms[curRoom]||[]).find(d=>d.id===did);
+              const lbl=dv?dv.label:did;
+              const devRow=document.createElement('div');
+              devRow.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--surf2);border-radius:3px;font-size:10px';
+              const statusIcon=status==='ng'?'✗':'△';
+              const statusCol=status==='ng'?'var(--err)':'var(--warn)';
+              devRow.innerHTML=`<span style="color:${statusCol};font-weight:500">${statusIcon}</span>
+                <span style="flex:1;color:var(--t1)">${esc(lbl)}</span>
+                ${note?`<span style="color:var(--t3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(note)}</span>`:''}`;
+              const resBtn=document.createElement('button');
+              if(res){
+                resBtn.textContent='🔧 解決済み';
+                resBtn.style.cssText='padding:2px 8px;background:rgba(100,100,100,.15);border:1px solid var(--b2);border-radius:3px;color:var(--t2);font-family:"DM Mono",monospace;font-size:9px;cursor:pointer;white-space:nowrap';
+                resBtn.onclick=(e)=>{e.stopPropagation();
+                  if(freeEvalData[dateStr]?.[curRoom]?.[did])freeEvalData[dateStr][curRoom][did].resolved=false;
+                  saveFreeEval();renderSidebar();toast('取り消しました');};
+              } else {
+                resBtn.textContent='解決済みにする';
+                resBtn.style.cssText='padding:2px 8px;background:transparent;border:1px solid var(--acc2);border-radius:3px;color:var(--acc2);font-family:"DM Mono",monospace;font-size:9px;cursor:pointer;white-space:nowrap';
+                resBtn.onclick=(e)=>{e.stopPropagation();
+                  if(freeEvalData[dateStr]?.[curRoom]?.[did])freeEvalData[dateStr][curRoom][did].resolved=true;
+                  saveFreeEval();renderSidebar();toast('🔧 解決済みにしました');};
+              }
+              devRow.appendChild(resBtn);row.appendChild(devRow);
+            });
+            sec.appendChild(row);
+          }
+        }
+      }
+    }
   });
 }
 
@@ -1321,7 +1477,7 @@ function renderCanvas(){
   let mx=800,my=600;
   devs.forEach(d=>{mx=Math.max(mx,d.x+d.w+60);my=Math.max(my,d.y+d.h+60);});
   cv.style.width=mx+'px';cv.style.height=my+'px';
-  const todayStr=today();
+  const todayStr=selectedDate||today();
   const todayGrp=getTodayGrp();
   const todayIds=new Set(todayGrp?todayGrp.deviceIds:[]);
   const selGrp=getGrps().find(g=>g.id===selGrpId);
@@ -1344,6 +1500,10 @@ function renderCanvas(){
         const st=getCheckStatus(todayStr,d.id);
         if(st)el.classList.add('check-'+st);
         else el.classList.add('check-today');
+      } else {
+        // Free eval for non-today devices
+        const fst=getFreeEvalStatus(d.id);
+        if(fst)el.classList.add('free-eval-'+fst);
       }
     }
     cv.appendChild(el);
@@ -1372,7 +1532,7 @@ function devElCanvas(d){
 function handleDevClick(id,e){
   if(curMode==='edit'){selectDev(id);}
   else if(curMode==='group'){toggleDevInGrp(id);}
-  else if(curMode==='check'){openCheckPopupForDev(id,e);}
+  else if(curMode==='check'){openUnifiedCheckPopup(id,e);}
 }
 
 function redrawDev(id){
@@ -1393,7 +1553,7 @@ function updateStatus(){
 // ════════════════════════════════════════════
 function startDrag(e,id){
   if(curMode!=='edit')return;
-  e.preventDefault();dragId=id;
+  e.preventDefault();pushHistory();dragId=id;
   const d=getDev(id);const r=document.getElementById('canvas').getBoundingClientRect();
   dragOX=e.clientX-r.left-d.x;dragOY=e.clientY-r.top-d.y;
   const el=document.getElementById('dv_'+id);if(el)el.classList.add('dragging');
@@ -1406,9 +1566,9 @@ function onDM(e){
   const mx=d.x+d.w+60,my=d.y+d.h+60;if(parseInt(cv.style.width)<mx)cv.style.width=mx+'px';if(parseInt(cv.style.height)<my)cv.style.height=my+'px';
 }
 function onDU(){if(!dragId)return;const el=document.getElementById('dv_'+dragId);if(el)el.classList.remove('dragging');dragId=null;document.removeEventListener('mousemove',onDM);document.removeEventListener('mouseup',onDU);}
-function startResize(e,id){e.preventDefault();e.stopPropagation();resizing=true;resId=id;const d=getDev(id);rsX=e.clientX;rsY=e.clientY;rsW=d.w;rsH=d.h;document.addEventListener('mousemove',onRM);document.addEventListener('mouseup',onRU);}
+function startResize(e,id){e.preventDefault();e.stopPropagation();pushHistory();resizing=true;resId=id;const d=getDev(id);rsX=e.clientX;rsY=e.clientY;rsW=d.w;rsH=d.h;document.addEventListener('mousemove',onRM);document.addEventListener('mouseup',onRU);}
 function onRM(e){if(!resizing)return;const d=getDev(resId);if(!d)return;d.w=snap(Math.max(8,rsW+(e.clientX-rsX)));d.h=snap(Math.max(8,rsH+(e.clientY-rsY)));const el=document.getElementById('dv_'+resId);if(el){el.style.width=d.w+'px';el.style.height=d.h+'px';}const fw=document.getElementById('fW'),fh=document.getElementById('fH');if(fw)fw.value=d.w;if(fh)fh.value=d.h;}
-function onRU(){resizing=false;document.removeEventListener('mousemove',onRM);document.removeEventListener('mouseup',onRU);if(resId)redrawDev(resId);}
+function onRU(){resizing=false;document.removeEventListener('mousemove',onRM);document.removeEventListener('mouseup',onRU);if(resId){redrawDev(resId);}}
 
 // ════════════════════════════════════════════
 // PALETTE DROP
@@ -1426,9 +1586,14 @@ function cvDrop(e){
   const wr=document.getElementById('cWrap');const r=wr.getBoundingClientRect();
   const x=snap(e.clientX-r.left+wr.scrollLeft-28),y=snap(e.clientY-r.top+wr.scrollTop-20);
   const sz=DEF[type];const nd=mkDev(type,type==='mon'?'モニター':'新規',x,y,sz.w,sz.h);
-  rooms[curRoom].push(nd);cvDragLeave();renderCanvas();selectDev(nd.id);renderSidebar();toast('追加しました');
+  pushHistory();rooms[curRoom].push(nd);cvDragLeave();renderCanvas();selectDev(nd.id);renderSidebar();toast('追加しました');
 }
-function cvDragLeave(){document.getElementById('ghost').style.display='none';palType=null;}
+function cvDragLeave(e){
+  // Only clear if actually leaving the canvas-wrap (not entering a child)
+  const wr=document.getElementById('cWrap');
+  if(e.relatedTarget&&wr.contains(e.relatedTarget))return;
+  document.getElementById('ghost').style.display='none';palType=null;
+}
 function cvClick(e){if(e.target.id==='canvas'&&curMode==='edit'){selId=null;document.querySelectorAll('.dev').forEach(el=>el.classList.remove('sel'));renderSidebar();}}
 
 // ════════════════════════════════════════════
@@ -1449,8 +1614,8 @@ function applyField(f,v){
 function adjSize(f,delta){const d=getDev(selId);if(!d)return;d[f]=snap(Math.max(8,d[f]+delta));const el=document.getElementById(f==='w'?'fW':'fH');if(el)el.value=d[f];redrawDev(selId);}
 function adjField(f,delta,mn,mx){const d=getDev(selId);if(!d)return;d[f]=Math.min(mx,Math.max(mn,(d[f]||8)+delta));const el=document.getElementById('f'+f[0].toUpperCase()+f.slice(1));if(el)el.value=d[f];redrawDev(selId);}
 function tgl(f){const d=getDev(selId);if(!d)return;d[f]=!d[f];const el=document.getElementById(f==='bold'?'fsB':f==='italic'?'fsI':'fsV');if(el)el.classList.toggle('on',d[f]);redrawDev(selId);}
-function dupSel(){const d=getDev(selId);if(!d)return;const nd={...d,id:uid(),x:d.x+16,y:d.y+16};rooms[curRoom].push(nd);renderCanvas();selectDev(nd.id);renderSidebar();toast('複製しました');}
-function delSel(){if(!selId)return;rooms[curRoom]=rooms[curRoom].filter(d=>d.id!==selId);selId=null;renderCanvas();renderSidebar();toast('削除しました');}
+function dupSel(){const d=getDev(selId);if(!d)return;pushHistory();const nd={...d,id:uid(),x:d.x+16,y:d.y+16};rooms[curRoom].push(nd);renderCanvas();selectDev(nd.id);renderSidebar();toast('複製しました');}
+function delSel(){if(!selId)return;pushHistory();rooms[curRoom]=rooms[curRoom].filter(d=>d.id!==selId);selId=null;renderCanvas();renderSidebar();toast('削除しました');}
 function bringFront(){const d=getDev(selId);if(!d)return;d.zIndex=Math.max(...getDevs().map(d=>d.zIndex||1))+1;renderCanvas();selectDev(selId);}
 function sendBack(){const d=getDev(selId);if(!d)return;d.zIndex=Math.max(0,(d.zIndex||1)-1);renderCanvas();selectDev(selId);}
 
@@ -1483,8 +1648,8 @@ function getCheckStatus(dateStr,devId){
   const todayGrp=getTodayGrp();if(!todayGrp)return null;
   return checkData[dateStr]?.[curRoom]?.[todayGrp.id]?.[devId]?.status||null;
 }
-function setCheckStatus(devId,status,note=''){
-  const dateStr=today();const todayGrp=getTodayGrp();if(!todayGrp)return;
+function setCheckStatus(devId,status,note='',overrideDate=null){
+  const dateStr=overrideDate||today();const todayGrp=getTodayGrp();if(!todayGrp)return;
   if(!checkData[dateStr])checkData[dateStr]={};
   if(!checkData[dateStr][curRoom])checkData[dateStr][curRoom]={};
   if(!checkData[dateStr][curRoom][todayGrp.id])checkData[dateStr][curRoom][todayGrp.id]={};
@@ -1525,10 +1690,102 @@ function openCheckPopupForDev(id,e){
   setTimeout(()=>document.addEventListener('click',outsideClickPopup),10);
 }
 function outsideClickPopup(e){if(!document.getElementById('checkPopup').contains(e.target)){closeCheckPopup();}}
+
+function openFreeEvalPopup(id,e){
+  const dv=getDev(id);if(!dv)return;
+  const curSt=getFreeEvalStatus(id);
+  const popup=document.getElementById('checkPopup');
+  popup.innerHTML=`
+    <div class="cp-title" style="color:var(--t2);font-size:10px;margin-bottom:4px">自由評価（任意）</div>
+    <div class="cp-title">${esc(dv.label||dv.id)}</div>
+    <div class="cp-btns">
+      <button class="cp-btn cp-ok"  onclick="doFreeEval('${id}','ok')">✓ 正常</button>
+      <button class="cp-btn cp-warn" onclick="doFreeEval('${id}','warn')">△ 要注意</button>
+      <button class="cp-btn cp-ng"  onclick="doFreeEval('${id}','ng')">✗ 異常あり</button>
+      ${curSt?`<button class="cp-btn cp-reset" onclick="doFreeEval('${id}',null)">リセット</button>`:''}
+    </div>
+    <textarea class="cp-note" id="cpNote" rows="2" placeholder="メモ（任意）"></textarea>
+    <button style="margin-top:5px;width:100%;padding:4px;background:transparent;border:1px solid var(--b2);border-radius:3px;color:var(--t2);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer" onclick="closeCheckPopup()">閉じる</button>`;
+  if(e){
+    const devEl=document.getElementById('dv_'+id);
+    const rect=devEl?devEl.getBoundingClientRect():{bottom:e.clientY,left:e.clientX};
+    popup.style.left=Math.min(e.clientX+12,window.innerWidth-220)+'px';
+    popup.style.top=Math.min(rect.bottom+4,window.innerHeight-280)+'px';
+    popup.style.transform='';
+  }
+  popup.style.display='block';
+  setTimeout(()=>document.addEventListener('click',outsideClickPopup),10);
+}
+
+function doFreeEval(id,status){
+  const note=document.getElementById('cpNote')?.value||'';
+  setFreeEvalStatus(id,status,note);
+  closeCheckPopup();
+  renderCanvas();
+  toast(status==='ok'?'✓ 正常':status==='ng'?'✗ 異常を記録':status==='warn'?'△ 要注意を記録':'リセットしました');
+}
+
+function openUnifiedCheckPopup(id, e){
+  const dv=getDev(id);if(!dv)return;
+  const grp=getTodayGrp();
+  const isInGrp=grp&&grp.deviceIds.includes(id);
+  const dateStr=selectedDate||today();
+
+  // Get current status - from checkData if in group, freeEval otherwise
+  let curSt, curNote;
+  if(isInGrp){
+    curSt=getCheckStatus(dateStr,id);
+    curNote=checkData[dateStr]?.[curRoom]?.[grp?.id]?.[id]?.note||'';
+  } else {
+    curSt=getFreeEvalStatus(id);
+    curNote=freeEvalData[dateStr]?.[curRoom]?.[id]?.note||'';
+  }
+
+  const popup=document.getElementById('checkPopup');
+  const tag=isInGrp?'':`<div style="font-size:9px;color:var(--t2);margin-bottom:6px;padding:3px 7px;background:var(--surf2);border-radius:3px;display:inline-block">自由評価</div><br>`;
+  popup.innerHTML=`
+    ${tag}
+    <div class="cp-title">${esc(dv.label||dv.id)}</div>
+    <div class="cp-btns">
+      <button class="cp-btn cp-ok"  onclick="doUnifiedCheck('${id}',${isInGrp},'ok')">✓ 正常</button>
+      <button class="cp-btn cp-warn" onclick="doUnifiedCheck('${id}',${isInGrp},'warn')">△ 要注意</button>
+      <button class="cp-btn cp-ng"  onclick="doUnifiedCheck('${id}',${isInGrp},'ng')">✗ 異常あり</button>
+      ${curSt?`<button class="cp-btn cp-reset" onclick="doUnifiedCheck('${id}',${isInGrp},null)">リセット</button>`:''}
+    </div>
+    <textarea class="cp-note" id="cpNote" rows="2" placeholder="メモ（任意）">${esc(curNote)}</textarea>
+    <button style="margin-top:5px;width:100%;padding:4px;background:transparent;border:1px solid var(--b2);border-radius:3px;color:var(--t2);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer" onclick="closeCheckPopup()">閉じる</button>`;
+
+  if(e){
+    const devEl=document.getElementById('dv_'+id);
+    const rect=devEl?devEl.getBoundingClientRect():{bottom:e.clientY};
+    popup.style.left=Math.min(e.clientX+12,window.innerWidth-220)+'px';
+    popup.style.top=Math.min(rect.bottom+4,window.innerHeight-280)+'px';
+    popup.style.transform='';
+  }
+  popup.style.display='block';
+  setTimeout(()=>document.addEventListener('click',outsideClickPopup),10);
+}
+
+function doUnifiedCheck(id,isInGrp,status){
+  const note=document.getElementById('cpNote')?.value||'';
+  if(isInGrp){
+    setCheckStatus(id,status,note,selectedDate);
+    saveAll();
+  } else {
+    setFreeEvalStatus(id,status,note);
+  }
+  closeCheckPopup();
+  renderCanvas();renderSidebar();
+  // Refresh anomaly modal if open
+  if(document.getElementById('anomalyModal').classList.contains('open')){
+    openAnomalyModal();
+  }
+  toast(status==='ok'?'✓ 正常':status==='ng'?'✗ 異常を記録':status==='warn'?'△ 要注意を記録':'リセットしました');
+}
 function closeCheckPopup(){document.getElementById('checkPopup').style.display='none';checkPopupDevId=null;document.removeEventListener('click',outsideClickPopup);}
 function doCheck(status){
   const note=document.getElementById('cpNote')?.value||'';
-  setCheckStatus(checkPopupDevId,status,note);
+  setCheckStatus(checkPopupDevId,status,note,selectedDate);
   closeCheckPopup();
   saveAll();
   toast(status==='ok'?'✓ 正常':status==='ng'?'✗ 異常を記録':status==='warn'?'△ 要注意を記録':'リセットしました');
@@ -1560,16 +1817,18 @@ function markResolved(dateStr,room,grpId,devId){
   if(!checkData[dateStr]?.[room]?.[grpId]?.[devId])return;
   checkData[dateStr][room][grpId][devId].resolved=true;
   saveAll();renderSidebar();
+  if(document.getElementById('anomalyModal').classList.contains('open'))openAnomalyModal();
   toast('✓ 解決済みにしました');
 }
 function unmarkResolved(dateStr,room,grpId,devId){
   if(!checkData[dateStr]?.[room]?.[grpId]?.[devId])return;
   checkData[dateStr][room][grpId][devId].resolved=false;
   saveAll();renderSidebar();
+  if(document.getElementById('anomalyModal').classList.contains('open'))openAnomalyModal();
   toast('解決済みを取り消しました');
 }
 function saveCheckData(){saveAll(true);toast('検査記録を保存しました ✓');}
-function clearHist(){if(!confirm('全ての履歴を削除しますか？'))return;checkData={};saveAll(true);renderSidebar();toast('履歴をクリアしました');}
+function clearHist(){if(!confirm('全ての履歴を削除しますか？'))return;checkData={};freeEvalData={};saveFreeEval();saveAll(true);renderSidebar();toast('履歴をクリアしました');}
 
 // ════════════════════════════════════════════
 // MODALS
@@ -1607,6 +1866,8 @@ let tT;function toast(msg){const el=document.getElementById('toast');el.textCont
 // KEYBOARD
 // ════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();return;}
+  if((e.metaKey||e.ctrlKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();return;}
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
   if(e.key==='Escape'){closeCheckPopup();}
   if((e.metaKey||e.ctrlKey)&&e.key==='s'){e.preventDefault();saveLayout();return;}
@@ -1827,6 +2088,40 @@ async function loadTheme(){
 // ════════════════════════════════════════════
 // BOX SELECT
 // ════════════════════════════════════════════
+
+// ════════════════════════════════════════════
+// UNDO / REDO
+// ════════════════════════════════════════════
+const MAX_HISTORY=30;
+let undoStack=[],redoStack=[],isUndoRedo=false;
+
+function pushHistory(){
+  if(isUndoRedo)return;
+  undoStack.push(JSON.stringify({rooms,groups}));
+  if(undoStack.length>MAX_HISTORY)undoStack.shift();
+  redoStack=[];
+  updateUndoButtons();
+}
+function undo(){
+  if(!undoStack.length)return;
+  redoStack.push(JSON.stringify({rooms,groups}));
+  const state=JSON.parse(undoStack.pop());
+  isUndoRedo=true;rooms=state.rooms;groups=state.groups;isUndoRedo=false;
+  renderAll();saveAll();updateUndoButtons();toast('↩ 元に戻しました');
+}
+function redo(){
+  if(!redoStack.length)return;
+  undoStack.push(JSON.stringify({rooms,groups}));
+  const state=JSON.parse(redoStack.pop());
+  isUndoRedo=true;rooms=state.rooms;groups=state.groups;isUndoRedo=false;
+  renderAll();saveAll();updateUndoButtons();toast('↪ やり直しました');
+}
+function updateUndoButtons(){
+  const u=document.getElementById('undoBtn');const r=document.getElementById('redoBtn');
+  if(u)u.style.opacity=undoStack.length?'1':'0.35';
+  if(r)r.style.opacity=redoStack.length?'1':'0.35';
+}
+
 let boxSelecting=false, boxStart={x:0,y:0}, boxCurrent={x:0,y:0};
 let boxSelectedIds=new Set();
 let groupDragging=false, groupDragStart={x:0,y:0}, groupDragOrigins={};
@@ -2179,6 +2474,7 @@ function delBoxSel(){
 // ── GROUP DRAG ──────────────────────────────
 function startGroupDrag(e){
   if(e.button!==0)return;
+  pushHistory();
   groupDragging=true;
   const pos=getCanvasPos(e);
   groupDragStart={...pos};
@@ -2252,6 +2548,127 @@ function toggleSidebar(){
   }
 }
 
+
+// ════════════════════════════════════════════
+// ANOMALY MODAL
+// ════════════════════════════════════════════
+function getUnresolvedAnomalies(){
+  const result=[];
+  // From official checkData
+  Object.entries(checkData).forEach(([dateStr,roomData])=>{
+    Object.entries(roomData).forEach(([room,grpData])=>{
+      Object.entries(grpData).forEach(([grpId,devData])=>{
+        Object.entries(devData).forEach(([did,entry])=>{
+          const {status,note,resolved}=entry;
+          if((status==='ng'||status==='warn')&&!resolved){
+            const dv=(rooms[room]||[]).find(d=>d.id===did);
+            const grp=(groups[room]||[]).find(g=>g.id===grpId);
+            result.push({dateStr,room,grpId,grpName:grp?grp.name:grpId,did,label:dv?dv.label:did,status,note:note||'',source:'check'});
+          }
+        });
+      });
+    });
+  });
+  // From freeEvalData
+  Object.entries(freeEvalData||{}).forEach(([dateStr,roomData])=>{
+    Object.entries(roomData).forEach(([room,devData])=>{
+      Object.entries(devData).forEach(([did,entry])=>{
+        const {status,note,resolved}=entry;
+        if((status==='ng'||status==='warn')&&!resolved){
+          const dv=(rooms[room]||[]).find(d=>d.id===did);
+          result.push({dateStr,room,grpId:null,grpName:'自由評価',did,label:dv?dv.label:did,status,note:note||'',source:'free'});
+        }
+      });
+    });
+  });
+  return result.sort((a,b)=>b.dateStr.localeCompare(a.dateStr));
+}
+
+function openAnomalyModal(){
+  const items=getUnresolvedAnomalies();
+  const body=document.getElementById('anomalyBody');
+  body.innerHTML='';
+  if(!items.length){
+    body.innerHTML='<div class="anomaly-empty">✓ 未解決の異常はありません</div>';
+  } else {
+    // Group by room
+    const byRoom={};
+    items.forEach(it=>{if(!byRoom[it.room])byRoom[it.room]=[];byRoom[it.room].push(it);});
+    Object.entries(byRoom).forEach(([room,its])=>{
+      const rg=document.createElement('div');rg.className='anomaly-room-group';
+      const rt=document.createElement('div');rt.className='anomaly-room-title';rt.textContent=room;rg.appendChild(rt);
+      its.forEach(it=>{
+        const row=document.createElement('div');row.className='anomaly-item '+it.status;
+        row.innerHTML=`
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">
+              <span class="anomaly-dev">${esc(it.label)}</span>
+              <span class="anomaly-st ${it.status}">${it.status==='ng'?'✗ 異常':'△ 要注意'}</span>
+              <span class="anomaly-date">${fmtDate(it.dateStr)} · ${esc(it.grpName)}</span>
+            </div>
+            ${it.note?`<div style="font-size:10px;color:var(--t2);margin-top:2px">📝 ${esc(it.note)}</div>`:''}
+          </div>`;
+        const resBtn=document.createElement('button');
+        resBtn.className='hbtn hbtn-g';resBtn.textContent='解決済み';resBtn.style.fontSize='10px';resBtn.style.padding='3px 8px';
+        resBtn.onclick=()=>{
+          if(it.source==='free'){
+            if(freeEvalData[it.dateStr]?.[it.room]?.[it.did])
+              freeEvalData[it.dateStr][it.room][it.did].resolved=true;
+            saveFreeEval();
+          } else {
+            if(checkData[it.dateStr]?.[it.room]?.[it.grpId]?.[it.did])
+              checkData[it.dateStr][it.room][it.grpId][it.did].resolved=true;
+            saveAll();
+          }
+          openAnomalyModal();
+          renderSidebar();
+          toast('🔧 解決済みにしました');
+        };
+        row.appendChild(resBtn);rg.appendChild(row);
+      });
+      body.appendChild(rg);
+    });
+  }
+  document.getElementById('anomalyModal').classList.add('open');
+}
+
+function closeAnomalyModal(){
+  document.getElementById('anomalyModal').classList.remove('open');
+}
+
+// Show on login if anomalies exist
+function checkAnomalyOnLogin(){
+  const items=getUnresolvedAnomalies();
+  if(items.length>0){
+    setTimeout(openAnomalyModal, 600);
+  }
+}
+
+// ════════════════════════════════════════════
+// FREE EVALUATION (non-today devices)
+// ════════════════════════════════════════════
+let freeEvalData={};// [dateStr][room][did]={status,note}
+const FREE_EVAL_KEY='rc_free_eval';
+
+function loadFreeEval(){
+  try{const s=localStorage.getItem(FREE_EVAL_KEY);if(s)freeEvalData=JSON.parse(s);}catch(e){}
+}
+function saveFreeEval(){
+  localStorage.setItem(FREE_EVAL_KEY,JSON.stringify(freeEvalData));
+}
+function getFreeEvalStatus(did){
+  const dateStr=selectedDate||today();
+  return freeEvalData[dateStr]?.[curRoom]?.[did]?.status||null;
+}
+function setFreeEvalStatus(did,status,note=''){
+  const dateStr=selectedDate||today();
+  if(!freeEvalData[dateStr])freeEvalData[dateStr]={};
+  if(!freeEvalData[dateStr][curRoom])freeEvalData[dateStr][curRoom]={};
+  if(status===null)delete freeEvalData[dateStr][curRoom][did];
+  else freeEvalData[dateStr][curRoom][did]={status,note};
+  saveFreeEval();
+}
+
 // startup
 (async()=>{
   try{
@@ -2259,6 +2676,9 @@ function toggleSidebar(){
     checkLogin();
     await init();
     initBoxSelect();
+    selectedDate=today();
+    loadFreeEval();
+    checkAnomalyOnLogin();
   }catch(e){
     console.error('Startup error:',e);
     // Even if init fails, make sure login works
