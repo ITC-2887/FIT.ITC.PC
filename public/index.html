@@ -1379,12 +1379,17 @@ function renderSidebarHist(sb){
             const dv=(rooms[room]||[]).find(d=>d.id===did);
             const lbl=dv?dv.label:did;
             const devRow=document.createElement('div');
-            devRow.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--surf2);border-radius:3px;font-size:10px';
+            devRow.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--surf2);border-radius:3px;font-size:10px;cursor:pointer;transition:background .12s';
+            devRow.title='クリックして教室に移動';
+            devRow.onmouseover=()=>devRow.style.background='var(--surf3)';
+            devRow.onmouseout=()=>devRow.style.background='var(--surf2)';
+            devRow.onclick=(e)=>{if(e.target.tagName==='BUTTON')return;jumpToDevice(room,did);};
             const statusIcon=status==='ng'?'✗':'△';
             const statusCol=status==='ng'?'var(--err)':'var(--warn)';
             devRow.innerHTML=`<span style="color:${statusCol};font-weight:500">${statusIcon}</span>
               <span style="flex:1;color:var(--t1)">${esc(lbl)}</span>
-              ${note?`<span style="color:var(--t3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(note)}</span>`:''}`;
+              ${note?`<span style="color:var(--t3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(note)}</span>`:''}
+              <span style="font-size:9px;color:var(--t3)">↗</span>`;
             const resBtn=document.createElement('button');
             if(res){
               resBtn.textContent='🔧 解決済み';
@@ -1433,12 +1438,17 @@ function renderSidebarHist(sb){
               const dv=(rooms[curRoom]||[]).find(d=>d.id===did);
               const lbl=dv?dv.label:did;
               const devRow=document.createElement('div');
-              devRow.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--surf2);border-radius:3px;font-size:10px';
+              devRow.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--surf2);border-radius:3px;font-size:10px;cursor:pointer;transition:background .12s';
+              devRow.title='クリックして教室に移動';
+              devRow.onmouseover=()=>devRow.style.background='var(--surf3)';
+              devRow.onmouseout=()=>devRow.style.background='var(--surf2)';
+              devRow.onclick=(e)=>{if(e.target.tagName==='BUTTON')return;jumpToDevice(curRoom,did);};
               const statusIcon=status==='ng'?'✗':'△';
               const statusCol=status==='ng'?'var(--err)':'var(--warn)';
               devRow.innerHTML=`<span style="color:${statusCol};font-weight:500">${statusIcon}</span>
                 <span style="flex:1;color:var(--t1)">${esc(lbl)}</span>
-                ${note?`<span style="color:var(--t3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(note)}</span>`:''}`;
+                ${note?`<span style="color:var(--t3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(note)}</span>`:''}
+                <span style="font-size:9px;color:var(--t3)">↗</span>`;
               const resBtn=document.createElement('button');
               if(res){
                 resBtn.textContent='🔧 解決済み';
