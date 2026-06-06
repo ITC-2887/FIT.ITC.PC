@@ -375,6 +375,14 @@ select.finp{cursor:pointer}
 .date-today-btn{background:transparent;border:1px solid var(--acc);border-radius:3px;color:var(--acc);cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;padding:3px 7px;white-space:nowrap;transition:.12s}
 .date-today-btn:hover{background:rgba(200,240,0,.1)}
 .date-is-today{font-size:9px;color:var(--acc2);text-align:center;margin-bottom:4px}
+
+/* ── DEVICE FLASH HIGHLIGHT ── */
+@keyframes deviceFlash{
+  0%,100%{outline:3px solid transparent;box-shadow:none}
+  25%,75%{outline:3px solid #ff8c00;box-shadow:0 0 16px rgba(255,140,0,.6)}
+  50%{outline:3px solid #ffaa00;box-shadow:0 0 28px rgba(255,170,0,.8)}
+}
+.dev.flash{animation:deviceFlash .6s ease-in-out 4;z-index:200!important}
 </style>
 </head>
 <body>
@@ -1586,12 +1594,14 @@ function cvDrop(e){
   const wr=document.getElementById('cWrap');const r=wr.getBoundingClientRect();
   const x=snap(e.clientX-r.left+wr.scrollLeft-28),y=snap(e.clientY-r.top+wr.scrollTop-20);
   const sz=DEF[type];const nd=mkDev(type,type==='mon'?'モニター':'新規',x,y,sz.w,sz.h);
-  pushHistory();rooms[curRoom].push(nd);cvDragLeave();renderCanvas();selectDev(nd.id);renderSidebar();toast('追加しました');
+  pushHistory();rooms[curRoom].push(nd);document.getElementById('ghost').style.display='none';palType=null;renderCanvas();selectDev(nd.id);renderSidebar();toast('追加しました');
 }
 function cvDragLeave(e){
   // Only clear if actually leaving the canvas-wrap (not entering a child)
-  const wr=document.getElementById('cWrap');
-  if(e.relatedTarget&&wr.contains(e.relatedTarget))return;
+  if(e&&e.relatedTarget){
+    const wr=document.getElementById('cWrap');
+    if(wr.contains(e.relatedTarget))return;
+  }
   document.getElementById('ghost').style.display='none';palType=null;
 }
 function cvClick(e){if(e.target.id==='canvas'&&curMode==='edit'){selId=null;document.querySelectorAll('.dev').forEach(el=>el.classList.remove('sel'));renderSidebar();}}
@@ -2584,6 +2594,36 @@ function getUnresolvedAnomalies(){
   return result.sort((a,b)=>b.dateStr.localeCompare(a.dateStr));
 }
 
+function jumpToDevice(room, did){
+  // Close anomaly modal
+  closeAnomalyModal();
+  // Switch to check mode and correct room
+  curRoom=room;
+  setMode('check');
+  // Update room tabs
+  document.querySelectorAll('.rtab').forEach(b=>b.classList.toggle('on',b.textContent===room));
+  renderAll();
+  // Wait for canvas to render then scroll and flash
+  setTimeout(()=>{
+    const el=document.getElementById('dv_'+did);
+    if(!el)return;
+    // Scroll into view
+    const wr=document.getElementById('cWrap');
+    const r=el.getBoundingClientRect();
+    const wr2=wr.getBoundingClientRect();
+    wr.scrollTo({
+      left:wr.scrollLeft+(r.left-wr2.left)-wr2.width/2+r.width/2,
+      top:wr.scrollTop+(r.top-wr2.top)-wr2.height/2+r.height/2,
+      behavior:'smooth'
+    });
+    // Flash highlight
+    setTimeout(()=>{
+      el.classList.add('flash');
+      setTimeout(()=>el.classList.remove('flash'),2600);
+    },300);
+  },100);
+}
+
 function openAnomalyModal(){
   const items=getUnresolvedAnomalies();
   const body=document.getElementById('anomalyBody');
@@ -2599,12 +2639,16 @@ function openAnomalyModal(){
       const rt=document.createElement('div');rt.className='anomaly-room-title';rt.textContent=room;rg.appendChild(rt);
       its.forEach(it=>{
         const row=document.createElement('div');row.className='anomaly-item '+it.status;
+        row.style.cursor='pointer';
+        row.title='クリックして教室に移動';
+        row.onclick=(e)=>{if(e.target.tagName==='BUTTON')return;jumpToDevice(it.room,it.did);};
         row.innerHTML=`
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">
               <span class="anomaly-dev">${esc(it.label)}</span>
               <span class="anomaly-st ${it.status}">${it.status==='ng'?'✗ 異常':'△ 要注意'}</span>
               <span class="anomaly-date">${fmtDate(it.dateStr)} · ${esc(it.grpName)}</span>
+              <span style="font-size:9px;color:var(--t3)">↗ 移動</span>
             </div>
             ${it.note?`<div style="font-size:10px;color:var(--t2);margin-top:2px">📝 ${esc(it.note)}</div>`:''}
           </div>`;
