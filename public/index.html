@@ -703,28 +703,32 @@ const dayOfYear=d=>{const s=new Date(d.getFullYear(),0,0);return Math.floor((d-s
 // ════════════════════════════════════════════
 // TODAY'S GROUP
 // ════════════════════════════════════════════
-function getTodayGrpIdx(){
+function getGrpIdxForDate(dateStr){
   const grps=getGrps();
   if(!grps.length)return -1;
-  const d=new Date();
-  const dow=d.getDay(); // 0=Sun,1=Mon,...,6=Sat
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const dow=dt.getDay();
   if(dow===0)return -1; // Sunday: no inspection
-  // Count weekdays (Mon-Sat) from epoch to determine rotation
-  // Use a fixed epoch Monday as reference
-  const epoch=new Date(2024,0,1); // 2024-01-01 is Monday
-  let days=0;
-  const cur=new Date(d.getFullYear(),d.getMonth(),d.getDate());
-  const diff=Math.floor((cur-epoch)/86400000);
-  // Count only Mon-Sat in range
+  const epoch=new Date(2024,0,1);
+  const diff=Math.floor((dt-epoch)/86400000);
   const weeks=Math.floor(diff/7);
-  const rem=diff%7; // 0=Mon,1=Tue,...,5=Sat,6=Sun
+  const rem=diff%7;
   const weekdayIdx=weeks*6+(rem<6?rem:5);
   return weekdayIdx%grps.length;
 }
-function getTodayGrp(){
-  const idx=getTodayGrpIdx();
+function getTodayGrpIdx(){
+  return getGrpIdxForDate(today());
+}
+function getGrpForDate(dateStr){
+  const idx=getGrpIdxForDate(dateStr);
   const grps=getGrps();
   return idx>=0?grps[idx]:null;
+}
+function getTodayGrp(){
+  // Use selectedDate if set, otherwise today
+  const ds=selectedDate||today();
+  return getGrpForDate(ds);
 }
 
 // ════════════════════════════════════════════
@@ -1368,6 +1372,13 @@ function renderSidebarCheck(sb){
   const dd=document.createElement('div');dd.className='check-day';dd.textContent=`${wd[selD.getDay()]}曜日 · ${curRoom}`;sec.appendChild(dd);
 
   const grp=getTodayGrp();const grps=getGrps();
+  // Sunday check
+  if(selD.getDay()===0){
+    const sun=document.createElement('div');
+    sun.style.cssText='text-align:center;padding:20px 8px;line-height:2;color:var(--t2);font-size:12px';
+    sun.innerHTML='🎌 日曜日<br><span style="color:var(--t3);font-size:10px">本日は検査がありません</span>';
+    sec.appendChild(sun);return;
+  }
   if(!grps.length){
     const e=document.createElement('div');e.style.cssText='font-size:11px;color:var(--t3);text-align:center;padding:12px 0;line-height:1.7';
     e.textContent='「列グループ設定」で\nグループを作成してください';sec.appendChild(e);return;
@@ -2671,7 +2682,7 @@ function initBoxSelect(){
 // ════════════════════════════════════════════
 async function loadSnapshotInfo(){
   try{
-    const r=await fetch('/api/restore-point');
+    const r=await fetch('/api/snapshot');
     if(r.ok){
       const d=await r.json();
       const el=document.getElementById('snapInfo');
@@ -2696,7 +2707,7 @@ async function saveSnapshot(){
   // First push latest data to server
   await saveAll(true);
   try{
-    const r=await fetch('/api/restore-point/save',{method:'POST'});
+    const r=await fetch('/api/snapshot/save',{method:'POST'});
     if(r.ok){
       const d=await r.json();
       toast('📸 復元ポイントを保存しました');
@@ -2713,7 +2724,7 @@ async function restoreSnapshot(){
   if(pw!==CREDS.pass){toast('パスワードが違います');return;}
   if(!confirm('⚠️ 復元ポイントから復元しますか？\n現在のデータは上書きされます。'))return;
   try{
-    const r=await fetch('/api/restore-point/restore',{method:'POST'});
+    const r=await fetch('/api/snapshot/restore',{method:'POST'});
     if(r.ok){
       toast('🔄 復元ポイントから復元しました');
       // Reload data

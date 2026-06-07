@@ -73,6 +73,11 @@ app.post('/api/theme', (req, res) => {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
+// Aliases for restore-point (same as snapshot)
+app.get('/api/restore-point', (req, res) => res.redirect('/api/snapshot'));
+app.post('/api/restore-point/save', (req, res) => res.redirect(307, '/api/snapshot/save'));
+app.post('/api/restore-point/restore', (req, res) => res.redirect(307, '/api/snapshot/restore'));
+
 // GET /api/snapshot - get snapshot info
 app.get('/api/snapshot', (req, res) => {
   ensureDir();
