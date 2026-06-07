@@ -73,6 +73,45 @@ app.post('/api/theme', (req, res) => {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
+// GET /api/snapshot - get snapshot info
+app.get('/api/snapshot', (req, res) => {
+  ensureDir();
+  const snapFile = path.join(__dirname, 'data', 'snapshot.json');
+  try {
+    const snap = JSON.parse(fs.readFileSync(snapFile, 'utf8'));
+    res.json({ ok: true, savedAt: snap.savedAt, roomCount: Object.keys(snap.rooms||{}).length });
+  } catch(e) {
+    res.json({ ok: false });
+  }
+});
+
+// POST /api/snapshot/save - save current data as snapshot
+app.post('/api/snapshot/save', (req, res) => {
+  ensureDir();
+  const snapFile = path.join(__dirname, 'data', 'snapshot.json');
+  try {
+    const current = readData();
+    current.savedAt = new Date().toISOString();
+    fs.writeFileSync(snapFile, JSON.stringify(current, null, 2));
+    res.json({ ok: true, savedAt: current.savedAt });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/snapshot/restore - restore snapshot to main data
+app.post('/api/snapshot/restore', (req, res) => {
+  ensureDir();
+  const snapFile = path.join(__dirname, 'data', 'snapshot.json');
+  try {
+    const snap = JSON.parse(fs.readFileSync(snapFile, 'utf8'));
+    writeData({ rooms: snap.rooms||{}, groups: snap.groups||{}, checkData: snap.checkData||{}, freeEvalData: snap.freeEvalData||{}, roomOrder: snap.roomOrder||[] });
+    res.json({ ok: true, savedAt: snap.savedAt });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('*', (req, res) => {
   const ua = req.headers['user-agent'] || '';
   res.sendFile(path.join(__dirname, 'public', isMobile(ua) ? 'mobile.html' : 'index.html'));
