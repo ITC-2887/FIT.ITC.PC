@@ -1177,7 +1177,7 @@ function renderHactions(){
   if(anomalyCount)ab.style.cssText+='border-color:var(--err);color:var(--err)';
 
   if(curMode==='check'){
-    btn(el,'hbtn hbtn-g','記録を保存',saveCheckData);
+    const sb=btn(el,'hbtn hbtn-a','💾 記録を保存',saveCheckData);sb.style.cssText+='font-weight:600;letter-spacing:.02em';
     btn(el,'hbtn hbtn-g','🎨',openTheme);
   } else if(curMode==='hist'){
     btn(el,'hbtn hbtn-r','履歴をクリア',clearHist);
