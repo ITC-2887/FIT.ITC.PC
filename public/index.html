@@ -2024,6 +2024,7 @@ function doLogin(){
     const p=document.getElementById('loginPass').value;
     if(u===CREDS.user&&p===CREDS.pass){
       sessionStorage.setItem('rc_auth','1');
+      syncLocalStorageToServer();
       const ls=document.getElementById('loginScreen');
       ls.style.transition='opacity .3s';
       ls.style.opacity='0';
@@ -2746,6 +2747,22 @@ function openRightDrawer(){
 function closeRightDrawer(){
   document.getElementById('rdrawer').classList.remove('open');
   document.getElementById('rdrawerBg').classList.remove('open');
+}
+
+
+// ── AUTO SYNC FROM LOCALSTORAGE ON LOGIN ──
+function syncLocalStorageToServer(){
+  fetch('/api/data', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      rooms: JSON.parse(localStorage.getItem('rc_rooms') || '{}'),
+      groups: JSON.parse(localStorage.getItem('rc_groups') || '{}'),
+      checkData: JSON.parse(localStorage.getItem('rc_checks') || '{}'),
+      freeEvalData: JSON.parse(localStorage.getItem('rc_free_eval') || '{}'),
+      roomOrder: JSON.parse(localStorage.getItem('rc_room_order') || '[]')
+    })
+  }).then(r => r.json()).then(d => console.log('✓ 恢复成功', d));
 }
 
 // ── SIDEBAR TOGGLE ──────────────────────
